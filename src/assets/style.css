@@ -1,0 +1,49 @@
+* {
+    box-sizing: border-box;
+}
+.container {
+    display: flex;
+    height: 100vh;
+    flex-direction: row;
+}
+input {
+    background-color: #3a3a3a;
+    border: none;
+    border-radius: 5px;
+    color: white;
+    padding: 10px;
+    width: 100%;
+    margin-top: 5px;
+}
+
+input:focus {
+    outline: 2px solid #cfbd97;
+}
+
+button {
+    background-color: #cfbd97;
+    border: none;
+    border-radius: 5px;
+    padding: 10px;
+    color: #000;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+button:hover {
+    background-color: #bda875;
+}
+.entete{
+    text-decoration: none;
+    margin-right: 10px;
+
+}
+
+
+@media (max-width: 768px) {
+    .container{
+        flex-direction: column;
+        text-align: center;
+    }
+}
+
