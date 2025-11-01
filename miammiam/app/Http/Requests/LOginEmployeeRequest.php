@@ -6,13 +6,19 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
-class LoginRequest extends FormRequest
+class LoginEmployeeRequest extends FormRequest
 {
+    /**
+     * Détermine si l'utilisateur est autorisé à faire cette requête.
+     */
     public function authorize(): bool
     {
-        return true;
+        return true; // La connexion est publique
     }
 
+    /**
+     * Règles de validation.
+     */
     public function rules(): array
     {
         return [
@@ -21,18 +27,24 @@ class LoginRequest extends FormRequest
         ];
     }
 
+    /**
+     * Messages d'erreur personnalisés.
+     */
     public function messages(): array
     {
         return [
-            'email.required' => 'L\'email est obligatoire',
-            'email.email' => 'L\'email doit être valide',
+            'email.required' => 'L\'adresse email est obligatoire',
+            'email.email' => 'L\'adresse email doit être valide',
             'mot_de_passe.required' => 'Le mot de passe est obligatoire',
         ];
     }
 
+    /**
+     * Gérer les erreurs de validation.
+     */
     protected function failedValidation(Validator $validator)
     {
-        \Log::error('Validation échouée pour login', [
+        \Log::error('Validation échouée pour login employé', [
             'errors' => $validator->errors()->all(),
             'input' => $this->all(),
         ]);

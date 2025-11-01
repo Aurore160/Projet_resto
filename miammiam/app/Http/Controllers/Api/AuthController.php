@@ -58,14 +58,76 @@ class AuthController extends Controller
     public function login(LoginRequest $request)
     {
         try {
+            \Log::info('Tentative de connexion', [
+                'all_data' => $request->all(),
+                'email' => $request->input('email'),
+                'mot_de_passe' => $request->input('mot_de_passe') ? 'présent' : 'absent',
+                'headers' => $request->headers->all()
+            ]);
+            
             $credentials = $request->validated();
+            
+            \Log::info('Données validées', [
+                'email' => $credentials['email'] ?? 'non défini',
+                'mot_de_passe_present' => isset($credentials['mot_de_passe']),
+            ]);
             
             $utilisateur = Utilisateur::where('email', $credentials['email'])->first();
 
-            // Tentative échouée : email/mot de passe incorrect
-            if (!$utilisateur || !Hash::check($credentials['mot_de_passe'], $utilisateur->mot_de_passe)) {
+            if (!$utilisateur) {
                 ConnexionLog::create([
-                    'utilisateur_id' => $utilisateur ? $utilisateur->id_utilisateur : null,
+                    'utilisateur_id' => null,
+                    'email' => $credentials['email'],
+                    'ip_address' => $request->ip(),
+                    'user_agent' => $request->userAgent(),
+                    'statut' => 'echec',
+                ]);
+                
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Email ou mot de passe incorrect',
+                ], 401);
+            }
+
+            $passwordValid = false;
+            
+            // Vérifie si le mot de passe est hashé (bcrypt commence par $2y$)
+            $isPasswordHashed = substr($utilisateur->mot_de_passe, 0, 4) === '$2y$' 
+                || substr($utilisateur->mot_de_passe, 0, 4) === '$2a$' 
+                || substr($utilisateur->mot_de_passe, 0, 4) === '$2b$';
+            
+            \Log::info('Vérification du mot de passe', [
+                'email' => $utilisateur->email,
+                'isPasswordHashed' => $isPasswordHashed,
+                'passwordStart' => substr($utilisateur->mot_de_passe, 0, 10),
+                'passwordLength' => strlen($utilisateur->mot_de_passe),
+                'providedPasswordLength' => strlen($credentials['mot_de_passe']),
+            ]);
+            
+            if ($isPasswordHashed) {
+                // Mot de passe hashé : utilise Hash::check()
+                $passwordValid = Hash::check($credentials['mot_de_passe'], $utilisateur->mot_de_passe);
+                \Log::info('Résultat Hash::check', ['passwordValid' => $passwordValid]);
+            } else {
+                // Mot de passe non hashé : comparaison directe
+                $passwordValid = $credentials['mot_de_passe'] === $utilisateur->mot_de_passe;
+                \Log::info('Résultat comparaison directe', [
+                    'passwordValid' => $passwordValid,
+                    'providedPassword' => $credentials['mot_de_passe'],
+                    'storedPassword' => $utilisateur->mot_de_passe,
+                ]);
+                
+                // Si la connexion réussit avec un mot de passe en clair, on le hashe et on met à jour
+                if ($passwordValid) {
+                    $utilisateur->mot_de_passe = Hash::make($credentials['mot_de_passe']);
+                    $utilisateur->save();
+                    \Log::info('Mot de passe hashé et mis à jour');
+                }
+            }
+
+            if (!$passwordValid) {
+                ConnexionLog::create([
+                    'utilisateur_id' => $utilisateur->id_utilisateur,
                     'email' => $credentials['email'],
                     'ip_address' => $request->ip(),
                     'user_agent' => $request->userAgent(),
@@ -260,5 +322,41 @@ class AuthController extends Controller
             ], 500);
         }
     }
-}
 
+    /**
+     * Déconnexion sécurisée (pour tous les utilisateurs)
+     * 
+     * POST /api/logout
+     */
+    public function logout(Request $request)
+    {
+        try {
+            $utilisateur = $request->user();
+            
+            if ($utilisateur) {
+                // Supprimer le token actuel (celui utilisé pour cette requête)
+                $request->user()->currentAccessToken()->delete();
+                
+                // Log la déconnexion
+                \Log::info('Déconnexion utilisateur', [
+                    'user_id' => $utilisateur->id_utilisateur,
+                    'email' => $utilisateur->email,
+                    'role' => $utilisateur->role,
+                    'ip_address' => $request->ip(),
+                ]);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Déconnexion réussie',
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la déconnexion',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+}

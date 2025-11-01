@@ -144,4 +144,75 @@ class MenuController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Consulter la liste des plats disponibles (pour les employés)
+     * 
+     * GET /api/menu/available
+     * 
+     * Accessible uniquement aux employés (employe, gerant, admin)
+     * Retourne uniquement les plats disponibles (statut_disponibilite = true)
+     * Format optimisé pour un affichage rapide
+     */
+    public function available(Request $request)
+    {
+        try {
+            // Paramètre optionnel pour filtrer par catégorie
+            $categorieId = $request->query('categorie');
+            
+            // Requête de base : uniquement les plats disponibles
+            $query = MenuItem::with('categorie')
+                ->where('statut_disponibilite', true);
+            
+            // Filtre par catégorie si fourni
+            if ($categorieId) {
+                $query->where('id_categorie', $categorieId);
+            }
+            
+            // Trier par catégorie puis par nom
+            $menuItems = $query->orderBy('id_categorie')
+                ->orderBy('nom')
+                ->get();
+            
+            // Formater les données pour un affichage rapide et optimisé
+            $platsFormates = $menuItems->map(function ($item) {
+                return [
+                    'id_menuitem' => $item->id_menuitem,
+                    'nom' => $item->nom,
+                    'description' => $item->description,
+                    'prix' => $item->prix,
+                    'photo_url' => $item->photo_url,
+                    'temps_preparation' => $item->temps_preparation,
+                    'plat_du_jour' => $item->plat_du_jour,
+                    'statut_disponibilite' => $item->statut_disponibilite,
+                    'categorie' => $item->categorie ? [
+                        'id_categorie' => $item->categorie->id_categorie,
+                        'nom' => $item->categorie->nom,
+                    ] : null,
+                ];
+            });
+            
+            return response()->json([
+                'success' => true,
+                'data' => $platsFormates,
+                'meta' => [
+                    'total' => $platsFormates->count(),
+                    'categorie_filtree' => $categorieId,
+                ],
+            ], 200);
+            
+        } catch (\Exception $e) {
+            \Log::error('Erreur lors de la récupération des plats disponibles (employé)', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la récupération des plats disponibles',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
 }
