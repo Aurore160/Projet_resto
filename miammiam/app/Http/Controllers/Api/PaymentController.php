@@ -8,6 +8,7 @@ use App\Http\Requests\InitializePaymentRequest;
 use App\Services\EasypayService;
 use App\Models\Commande;
 use App\Models\Payment;
+use App\Models\Notification;
 use App\Mail\PaymentReceiptMail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -75,7 +76,8 @@ class PaymentController extends Controller
             $methodePayment = $paymentConfig['methode_payment'];
 
             // Préparer les données pour Easypay
-            $baseUrl = config('app.url', 'http://localhost');
+            $frontendUrl = env('FRONTEND_URL', 'http://localhost:5173');
+            $backendUrl = config('app.url', 'http://localhost:8000');
             
             $easypayData = [
                 'order_ref' => $commande->numero_commande ?? 'CMD-' . $commande->id_commande,
@@ -84,9 +86,9 @@ class PaymentController extends Controller
                 'customer_name' => $commande->utilisateur->nom . ' ' . $commande->utilisateur->prenom,
                 'customer_email' => $commande->utilisateur->email,
                 'description' => "Paiement commande #{$commande->numero_commande}",
-                'success_url' => "{$baseUrl}/api/payments/success",
-                'error_url' => "{$baseUrl}/api/payments/error",
-                'cancel_url' => "{$baseUrl}/api/payments/cancel",
+                'success_url' => "{$backendUrl}/api/payments/success?reference={reference}&redirect=" . urlencode("{$frontendUrl}/payment-success"),
+                'error_url' => "{$backendUrl}/api/payments/error?reference={reference}&redirect=" . urlencode("{$frontendUrl}/payment-error"),
+                'cancel_url' => "{$backendUrl}/api/payments/cancel?reference={reference}&redirect=" . urlencode("{$frontendUrl}/payment-cancel"),
                 'language' => $data['language'] ?? 'fr',
                 'channels' => $channels, // Envoyer les channels selon le choix
             ];
@@ -150,6 +152,7 @@ class PaymentController extends Controller
     {
         try {
             $reference = $request->query('reference');
+            $redirectUrl = $request->query('redirect', env('FRONTEND_URL', 'http://localhost:5173') . '/payment-success');
             
             if (!$reference) {
                 return $this->errorResponse('Référence de transaction manquante', 400);
@@ -182,7 +185,18 @@ class PaymentController extends Controller
 
                     // Si le paiement est réussi, finaliser le paiement (mise à jour commande + envoi email)
                     if ($statutPayment === 'paye') {
+                        $this->logger->info('Paiement réussi détecté dans success callback, finalisation en cours...', [
+                            'reference' => $reference,
+                            'payment_id' => $payment->id_payment,
+                            'easypay_status' => $statusResult['status']
+                        ]);
                         $this->finalizeSuccessfulPayment($payment);
+                    } else {
+                        $this->logger->info('Paiement non réussi dans success callback', [
+                            'reference' => $reference,
+                            'statut_payment' => $statutPayment,
+                            'easypay_status' => $statusResult['status']
+                        ]);
                     }
 
                     DB::commit();
@@ -196,12 +210,12 @@ class PaymentController extends Controller
             }
 
             // Retourner une réponse JSON ou rediriger selon le besoin
-            return response()->json([
-                'success' => true,
-                'message' => $statusResult['status'] === 'SUCCESS' ? 'Paiement effectué avec succès' : 'Transaction annulée ou échouée',
-                'payment_status' => $statusResult['status'],
-                'reference' => $reference
-            ]);
+            // Rediriger vers le frontend
+            if ($statusResult['status'] === 'SUCCESS') {
+                return redirect($redirectUrl . '?reference=' . $reference . '&status=success');
+            } else {
+                return redirect($redirectUrl . '?reference=' . $reference . '&status=failed');
+            }
 
         } catch (\Exception $e) {
             return $this->handleException(
@@ -256,6 +270,7 @@ class PaymentController extends Controller
     {
         try {
             $reference = $request->query('reference');
+            $redirectUrl = $request->query('redirect', env('FRONTEND_URL', 'http://localhost:5173') . '/payment-cancel');
             
             if ($reference) {
                 $payment = Payment::where('transaction_ref', $reference)->first();
@@ -267,11 +282,7 @@ class PaymentController extends Controller
                 }
             }
 
-            return response()->json([
-                'success' => false,
-                'message' => 'Le paiement a été annulé',
-                'reference' => $reference
-            ], 200);
+            return redirect($redirectUrl . '?reference=' . $reference . '&status=cancel');
 
         } catch (\Exception $e) {
             return $this->handleException(
@@ -568,17 +579,70 @@ class PaymentController extends Controller
         // Mettre à jour le statut de la commande si elle est en attente
         // Le statut de commande indique l'état de préparation, pas le paiement
         // Quand le paiement est réussi, on confirme la commande
+        $ancienStatut = $commande->statut;
         if ($commande->statut === 'en_attente') {
             $commande->update(['statut' => 'confirmee']);
         }
         
+        // Créer une notification pour le client concernant le paiement réussi
+        $this->createNotification(
+            $commande->id_utilisateur,
+            $commande->id_commande,
+            'commande',
+            'Paiement réussi',
+            "Votre paiement pour la commande #{$commande->numero_commande} a été effectué avec succès. Montant payé: " . number_format($payment->montant * 2000, 0, ',', ' ') . " CDF"
+        );
+        
         // Envoyer le reçu PDF par email
         try {
+            $this->logger->info('Envoi de l\'email avec réçu PDF', [
+                'payment_id' => $payment->id_payment,
+                'commande_id' => $commande->id_commande,
+                'email' => $commande->utilisateur->email
+            ]);
+            
             $this->mailer->to($commande->utilisateur->email)->send(new PaymentReceiptMail($payment));
+            
+            $this->logger->info('Email avec réçu PDF envoyé avec succès', [
+                'payment_id' => $payment->id_payment,
+                'email' => $commande->utilisateur->email
+            ]);
         } catch (\Exception $e) {
             // Log l'erreur mais ne fait pas échouer le paiement
             $this->logger->error('Erreur lors de l\'envoi du reçu de paiement', [
                 'payment_id' => $payment->id_payment,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+        }
+    }
+
+    /**
+     * Méthode helper pour créer une notification
+     * 
+     * @param int $idUtilisateur
+     * @param int|null $idCommande
+     * @param string $type (commande, system, promotion)
+     * @param string $titre
+     * @param string $message
+     */
+    private function createNotification($idUtilisateur, $idCommande, $type, $titre, $message)
+    {
+        try {
+            Notification::create([
+                'id_utilisateur' => $idUtilisateur,
+                'id_commande' => $idCommande,
+                'type_notification' => $type,
+                'titre' => $titre,
+                'message' => $message,
+                'lu' => false,
+                'date_creation' => now(),
+            ]);
+        } catch (\Exception $e) {
+            // Log l'erreur mais ne fait pas échouer l'opération principale
+            $this->logger->error('Erreur lors de la création de la notification', [
+                'user_id' => $idUtilisateur,
+                'commande_id' => $idCommande,
                 'error' => $e->getMessage(),
             ]);
         }

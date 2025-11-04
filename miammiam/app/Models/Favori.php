@@ -46,3 +46,4 @@ class Favori extends Model
         return $this->belongsTo(MenuItem::class, 'id_menuitem', 'id_menuitem');
     }
 }
+

@@ -43,3 +43,11 @@ return new class extends Migration
         Schema::dropIfExists('favoris');
     }
 };
+
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('favoris');
+    }
+};

@@ -37,3 +37,14 @@ class AddToFavoritesRequest extends FormRequest
         ];
     }
 }
+
+     */
+    public function messages(): array
+    {
+        return [
+            'menu_item_id.required' => 'Le plat est obligatoire',
+            'menu_item_id.integer' => 'L\'identifiant du plat doit être un nombre entier',
+            'menu_item_id.exists' => 'Ce plat n\'existe pas ou n\'est plus disponible',
+        ];
+    }
+}

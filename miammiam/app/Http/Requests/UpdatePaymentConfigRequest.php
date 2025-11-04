@@ -51,3 +51,28 @@ class UpdatePaymentConfigRequest extends FormRequest
         ];
     }
 }
+
+            'publishable_key' => 'required|string|min:10',
+            'active' => 'sometimes|boolean',
+            'notes' => 'nullable|string|max:500',
+        ];
+    }
+
+    /**
+     * Messages d'erreur personnalisés.
+     */
+    public function messages(): array
+    {
+        return [
+            'provider.in' => 'Le fournisseur de paiement doit être "easypay"',
+            'mode.required' => 'Le mode est obligatoire',
+            'mode.in' => 'Le mode doit être "sandbox" ou "production"',
+            'cid.required' => 'Le Correlation ID (CID) est obligatoire',
+            'cid.min' => 'Le Correlation ID doit contenir au moins 10 caractères',
+            'publishable_key.required' => 'La clé publique est obligatoire',
+            'publishable_key.min' => 'La clé publique doit contenir au moins 10 caractères',
+            'active.boolean' => 'Le statut actif doit être vrai ou faux',
+            'notes.max' => 'Les notes ne peuvent pas dépasser 500 caractères',
+        ];
+    }
+}

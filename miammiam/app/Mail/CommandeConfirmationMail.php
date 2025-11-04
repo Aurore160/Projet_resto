@@ -58,3 +58,9 @@ class CommandeConfirmationMail extends Mailable
         return [];
     }
 }
+
+    public function attachments(): array
+    {
+        return [];
+    }
+}

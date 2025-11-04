@@ -74,3 +74,11 @@ class Commande extends Model
         return $this->articles->sum('quantite');
     }
 }
+    }
+
+    // Compter le nombre total d'articles
+    public function getTotalArticles()
+    {
+        return $this->articles->sum('quantite');
+    }
+}

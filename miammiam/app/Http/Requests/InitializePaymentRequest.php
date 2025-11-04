@@ -39,3 +39,5 @@ class InitializePaymentRequest extends FormRequest
         ];
     }
 }
+    }
+}

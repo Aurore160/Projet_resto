@@ -40,3 +40,17 @@ class AssignOrder extends FormRequest
         ];
     }
 }
+
+
+    /**
+     * Messages d'erreur personnalisés.
+     */
+    public function messages(): array
+    {
+        return [
+            'id_livreur.required' => 'L\'identifiant du livreur est obligatoire',
+            'id_livreur.integer' => 'L\'identifiant du livreur doit être un nombre entier',
+            'id_livreur.exists' => 'Le livreur spécifié n\'existe pas',
+        ];
+    }
+}

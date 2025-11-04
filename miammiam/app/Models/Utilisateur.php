@@ -20,6 +20,7 @@ class Utilisateur extends Authenticatable
         'nom',
         'prenom',
         'email',
+        'photo',
         'mot_de_passe',
         'telephone',
         'adresse_livraison',
@@ -42,14 +43,73 @@ class Utilisateur extends Authenticatable
         'points_balance' => 'integer',
     ];
 
+    /**
+     * Relation : le parrain de cet utilisateur (si parrainé)
+     */
     public function parrain()
     {
         return $this->belongsTo(Utilisateur::class, 'parrain_id', 'id_utilisateur');
     }
 
+    /**
+     * Relation : les parrainages où cet utilisateur est le parrain
+     */
+    public function parrainages()
+    {
+        return $this->hasMany(Parrainage::class, 'id_parrain', 'id_utilisateur');
+    }
+
+    /**
+     * Relation : les filleuls de cet utilisateur (les utilisateurs qu'il a parrainés)
+     */
     public function filleuls()
     {
-        return $this->hasMany(Utilisateur::class, 'parrain_id', 'id_utilisateur');
+        return $this->hasManyThrough(
+            Utilisateur::class,
+            Parrainage::class,
+            'id_parrain', // Clé étrangère dans parrainages
+            'id_utilisateur', // Clé étrangère dans utilisateur
+            'id_utilisateur', // Clé locale dans utilisateur (parrain)
+            'id_filleul' // Clé locale dans parrainages
+        );
+    }
+
+    /**
+     * Relation : le parrainage de cet utilisateur (s'il est un filleul)
+     */
+    public function parrainage()
+    {
+        return $this->hasOne(Parrainage::class, 'id_filleul', 'id_utilisateur');
+    }
+
+    public function getAuthPassword()
+    {
+        return $this->mot_de_passe;
+    }
+}
+
+
+    /**
+     * Relation : les filleuls de cet utilisateur (les utilisateurs qu'il a parrainés)
+     */
+    public function filleuls()
+    {
+        return $this->hasManyThrough(
+            Utilisateur::class,
+            Parrainage::class,
+            'id_parrain', // Clé étrangère dans parrainages
+            'id_utilisateur', // Clé étrangère dans utilisateur
+            'id_utilisateur', // Clé locale dans utilisateur (parrain)
+            'id_filleul' // Clé locale dans parrainages
+        );
+    }
+
+    /**
+     * Relation : le parrainage de cet utilisateur (s'il est un filleul)
+     */
+    public function parrainage()
+    {
+        return $this->hasOne(Parrainage::class, 'id_filleul', 'id_utilisateur');
     }
 
     public function getAuthPassword()

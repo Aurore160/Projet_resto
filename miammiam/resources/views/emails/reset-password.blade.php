@@ -75,14 +75,18 @@
             <p>Vous avez demandé à réinitialiser votre mot de passe. Cliquez sur le bouton ci-dessous pour créer un nouveau mot de passe :</p>
             
             <div style="text-align: center;">
-                <a href="{{ url('/reset-password?token=' . $token . '&email=' . $email) }}" class="button">
+                @php
+                    $frontendUrl = env('FRONTEND_URL', 'http://localhost:5173');
+                    $resetUrl = $frontendUrl . '/reset-password?token=' . $token . '&email=' . urlencode($email);
+                @endphp
+                <a href="{{ $resetUrl }}" class="button">
                     Réinitialiser mon mot de passe
                 </a>
             </div>
             
             <p>Ou copiez ce lien dans votre navigateur :</p>
             <p style="background-color: #f9f9f9; padding: 10px; border-radius: 4px; word-break: break-all;">
-                {{ url('/reset-password?token=' . $token . '&email=' . $email) }}
+                {{ $resetUrl }}
             </p>
             
             <div class="warning">
@@ -102,6 +106,10 @@
     </div>
 </body>
 </html>
+
+
+
+
 
 
 

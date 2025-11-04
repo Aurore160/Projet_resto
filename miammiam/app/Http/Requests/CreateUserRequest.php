@@ -67,3 +67,24 @@ class CreateUserRequest extends FormRequest
         ];
     }
 }
+
+            'email.email' => 'L\'email doit être valide',
+            'email.unique' => 'Cet email est déjà utilisé',
+            'mot_de_passe.required' => 'Le mot de passe est obligatoire',
+            'mot_de_passe.min' => 'Le mot de passe doit contenir au moins 8 caractères',
+            'mot_de_passe.regex' => 'Le mot de passe doit contenir au moins une minuscule, une majuscule, un chiffre et un caractère spécial',
+            'role.required' => 'Le rôle est obligatoire',
+            'role.in' => 'Le rôle doit être : etudiant, employe, gerant ou admin',
+            // Messages pour les champs employe
+            'matricule.required' => 'Le matricule est obligatoire pour un employé',
+            'matricule.unique' => 'Ce matricule est déjà utilisé',
+            'role_specifique.required' => 'Le rôle spécifique est obligatoire pour un employé',
+            'role_specifique.in' => 'Le rôle spécifique doit être : cuisinier, serveur, livreur, caissier ou manager',
+            'date_embauche.required' => 'La date d\'embauche est obligatoire pour un employé',
+            'date_embauche.date' => 'La date d\'embauche doit être une date valide',
+            'salaire.numeric' => 'Le salaire doit être un nombre',
+            'salaire.min' => 'Le salaire ne peut pas être négatif',
+            'statut.in' => 'Le statut doit être : actif, inactif, congé ou licencie',
+        ];
+    }
+}

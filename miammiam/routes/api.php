@@ -6,9 +6,16 @@ use App\Http\Controllers\Api\GerantController;
 use App\Http\Controllers\Api\MenuController;
 use App\Http\Controllers\Api\CartController;
 use App\Http\Controllers\Api\FavoriteController;
+use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\EmployeeController;
+use App\Http\Controllers\Api\ReviewController;
+use App\Http\Controllers\Api\ReclamationController;
+use App\Http\Controllers\Api\StockController;
+use App\Http\Controllers\Api\MessageController;
+use App\Http\Controllers\Api\ParrainageController;
+use App\Http\Controllers\Api\PromotionController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -16,6 +23,14 @@ use Illuminate\Support\Facades\Route;
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/login-employe', [EmployeeController::class, 'login']);
+
+// Routes promotions (publiques)
+Route::prefix('promotions')->group(function () {
+    Route::get('/', [PromotionController::class, 'index']); // Lister les promotions
+    Route::get('/plats', [PromotionController::class, 'plats']); // Lister les plats en promotion
+    Route::post('/verifier-code', [PromotionController::class, 'verifierCode']); // Vérifier un code promo
+    Route::get('/{id}', [PromotionController::class, 'show']); // Détails d'une promotion
+});
 Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
 Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 
@@ -27,10 +42,14 @@ Route::get('/menu/plats-du-jour', [MenuController::class, 'platsJour']);
 Route::middleware(['auth:sanctum', 'role:employe,gerant,admin'])->get('/menu/available', [MenuController::class, 'available']);
 Route::get('/menu/{id}', [MenuController::class, 'show']);
 
+// Routes publiques - Réclamations / Contact (accessible même sans authentification)
+Route::post('/reclamations', [ReclamationController::class, 'store']);
+
 // Routes protégées (utilisateurs connectés)
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/profile', [AuthController::class, 'profile']);
     Route::put('/profile', [AuthController::class, 'updateProfile']);
+    Route::post('/profile', [AuthController::class, 'updateProfile']); // Pour FormData avec _method=PUT
     Route::post('/logout', [AuthController::class, 'logout']);
 });
 
@@ -50,18 +69,55 @@ Route::middleware('auth:sanctum')->prefix('favorites')->group(function () {
     Route::delete('/{id}', [FavoriteController::class, 'destroy']);
 });
 
+// Routes parrainage (utilisateurs connectés)
+Route::middleware('auth:sanctum')->prefix('parrainage')->group(function () {
+    Route::get('/code', [ParrainageController::class, 'getCode']);
+    Route::get('/historique', [ParrainageController::class, 'historique']);
+});
+
+// Routes notifications (utilisateurs connectés)
+Route::middleware('auth:sanctum')->prefix('notifications')->group(function () {
+    Route::get('/', [NotificationController::class, 'index']);
+    Route::get('/employee', [NotificationController::class, 'employeeNotifications'])->middleware('role:employe,gerant,admin');
+    Route::put('/read-all', [NotificationController::class, 'markAllAsRead']);
+    Route::put('/{id}/read', [NotificationController::class, 'markAsRead']);
+    Route::delete('/{id}', [NotificationController::class, 'destroy']);
+});
+
+// Route pour envoyer des notifications aux employés (gérant/admin uniquement)
+Route::middleware(['auth:sanctum', 'role:gerant,admin'])->post('/notifications/employees', [NotificationController::class, 'sendToEmployees']);
+
+// Routes avis (utilisateurs connectés)
+// Routes pour les avis clients (création)
+Route::middleware('auth:sanctum')->prefix('reviews')->group(function () {
+    Route::post('/', [ReviewController::class, 'store']);
+});
+
+// Routes pour la gestion des avis par le gérant/admin
+Route::middleware(['auth:sanctum', 'role:gerant,admin'])->prefix('reviews')->group(function () {
+    Route::get('/', [ReviewController::class, 'index']); // Lister avec filtrage/tri
+    Route::get('/{id}', [ReviewController::class, 'show']); // Afficher un avis
+    Route::put('/{id}', [ReviewController::class, 'update']); // Répondre à un avis
+    Route::put('/{id}/moderate', [ReviewController::class, 'moderate']); // Modérer un avis
+    Route::delete('/{id}', [ReviewController::class, 'destroy']); // Supprimer un avis
+});
+
 // Routes commandes (utilisateurs connectés)
 Route::middleware('auth:sanctum')->prefix('orders')->group(function () {
+    // IMPORTANT : Les routes spécifiques doivent être AVANT /{id} pour éviter les conflits
     Route::get('/summary', [OrderController::class, 'summary']);
     Route::get('/active', [OrderController::class, 'active']);
     Route::get('/recent-updates', [OrderController::class, 'recentUpdates']);
-    Route::get('/', [OrderController::class, 'index']);
-    Route::post('/', [OrderController::class, 'store']);
-    // IMPORTANT : Les routes spécifiques doivent être AVANT /{id} pour éviter les conflits
+    Route::get('/history', [OrderController::class, 'history']);
     Route::get('/pending', [OrderController::class, 'pending'])->middleware('role:employe,gerant,admin');
     Route::get('/{id}/details', [OrderController::class, 'showForEmployee'])->middleware('role:employe,gerant,admin');
     Route::put('/{id}/status', [OrderController::class, 'updateStatus'])->middleware('role:employe,gerant,admin');
     Route::put('/{id}/assign', [OrderController::class, 'assign'])->middleware('role:employe,gerant,admin');
+    // Routes génériques en dernier
+    Route::post('/{id}/payment', [OrderController::class, 'processPayment']);
+    Route::delete('/{id}', [OrderController::class, 'destroy']); // Supprimer une commande
+    Route::get('/', [OrderController::class, 'index']);
+    Route::post('/', [OrderController::class, 'store']);
     Route::get('/{id}', [OrderController::class, 'show']);
 });
 
@@ -105,6 +161,17 @@ Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(functi
 // Routes statistiques (employés, gérants, admins)
 Route::middleware(['auth:sanctum', 'role:employe,gerant,admin'])->prefix('stats')->group(function () {
     Route::get('/employee', [OrderController::class, 'employeeStats']);
+});
+
+// Routes stock (employés, gérants, admins)
+Route::middleware(['auth:sanctum', 'role:employe,gerant,admin'])->prefix('stock')->group(function () {
+    Route::post('/out', [StockController::class, 'reportStockOut']);
+});
+
+// Routes messagerie (employés, gérants, admins)
+Route::middleware(['auth:sanctum', 'role:employe,gerant,admin'])->prefix('messages')->group(function () {
+    Route::post('/', [MessageController::class, 'store']);
+    Route::get('/', [MessageController::class, 'index']);
 });
 
 // Routes gérant (gérant uniquement)

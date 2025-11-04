@@ -39,3 +39,16 @@ class UpdateOrderStatusRequest extends FormRequest
         ];
     }
 }
+
+
+    /**
+     * Messages d'erreur personnalisés.
+     */
+    public function messages(): array
+    {
+        return [
+            'statut.required' => 'Le statut est obligatoire',
+            'statut.in' => 'Le statut doit être l\'un des suivants : en_attente, confirmee, en_preparation, pret, livree, annulee',
+        ];
+    }
+}

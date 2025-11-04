@@ -27,6 +27,11 @@ class RegisterRequest extends FormRequest
             'adresse_livraison' => 'nullable|string',
             'adresse_facturation' => 'nullable|string',
             'consentement_cookies' => 'boolean',
+            'code_parrainage' => [
+                'nullable',
+                'string',
+                'max:10',
+            ],
         ];
     }
 
@@ -34,6 +39,11 @@ class RegisterRequest extends FormRequest
     {
         return [
             'mot_de_passe.regex' => 'Le mot de passe doit contenir au moins une minuscule, une majuscule, un chiffre et un caractère spécial (@$!%*?&)',
+            'email.unique' => 'Cet email est déjà utilisé',
+        ];
+    }
+}
+
             'email.unique' => 'Cet email est déjà utilisé',
         ];
     }
