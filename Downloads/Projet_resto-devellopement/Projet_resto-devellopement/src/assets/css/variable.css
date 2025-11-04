@@ -1,0 +1,69 @@
+:root {
+  /* Couleurs principales */
+  --primary-color: #e0d6be;
+  --secondary-color: #000;
+  --accent-color: #e5d8bb;
+  --success-color: #ffffff;
+  --hover-color: #dcca9b;
+  --fin-color: #555;
+  
+  
+  /* Couleurs neutres */
+  --white: #ffffff;
+  --light-gray: #f8f9fa;
+  --gray: #6c757d;
+  --dark-gray: #343a40;
+  --black: #000000;
+  
+  /* Couleurs spécifiques au restaurant
+  --food-primary: #ff6b35;
+  --food-secondary: #f39c12;
+  --food-accent: #e74c3c;
+  --food-background: #fff8f0; */
+  
+  /* Polices */
+  --font-primary: 'Inter', 'Segoe UI', Roboto, sans-serif;
+  --font-secondary: 'Playfair Display', 'Georgia', serif;
+  --font-accent: 'Dancing Script', cursive;
+
+  
+  /* Tailles de police */
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 1.875rem;
+  
+  /* Espacements */
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+  
+  /* Bordures */
+  --border-radius-sm: 4px;
+  --border-radius-md: 8px;
+  --border-radius-lg: 12px;
+  --border-radius-xl: 20px;
+  
+  /* Ombres */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.12);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.15);
+  
+  /* Breakpoints (pour référence) */
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+}
+.momo {
+  font-family: "Momo Signature", cursive;
+  font-weight: 400;
+  font-style: normal;
+}
+
+/*  */
