@@ -1,9 +1,9 @@
 <template>
-  <HomeView />
+  <router-view />
 </template>
 
 <script setup>
-import HomeView from './views/HomeView.vue'
+// App acts as the router outlet. Individual layouts / views are rendered by the router.
 </script>
 
 <style>
@@ -12,6 +12,6 @@ body {
   margin: 0;
   padding: 0;
   font-family: 'Arial', sans-serif;
-  background-color: #E4DBC6;
+  background-color: #ffffff;
 }
 </style>

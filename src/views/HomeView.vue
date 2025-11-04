@@ -333,7 +333,7 @@ const dishes = ref([
 <style scoped>
 /* Variables de couleurs */
 :root {
-  --primary-color: #E4DBC6;
+  --primary-color: #cfbd97;
   --secondary-color: #000000;
   --text-color: #333333;
   --white: #ffffff;
@@ -341,13 +341,13 @@ const dishes = ref([
 }
 
 .home-page {
-  background-color: var(--primary-color);
+  background-color: #ffffff;
   font-family: 'Arial', sans-serif;
 }
 
 /* Header */
 .header-section {
-  background-color: var(--primary-color);
+  background-color: #cfbd97;
   padding: 0.2rem 0;
   border-bottom: 2px solid #d4c9ac;
   /* box-shadow: 0 2px 10px rgba(239, 237, 237, 0.1); */
@@ -693,7 +693,7 @@ const dishes = ref([
 
 /* Footer amélioré */
 .footer-section {
-  background: linear-gradient(135deg, #5c5b5b 0%, #525252 100%);
+  background: #000000;
   color: var(--white);
   padding: 4rem 0 1rem;
 }
