@@ -31,7 +31,7 @@
     <div v-if="activeSection === 'menu'" class="section-content">
       <div class="section-header">
         <h3>Gestion des Éléments du Menu</h3>
-        <button @click="showAddItemModal = true" class="btn-primary">
+        <button @click="openAddItemModal" class="btn-primary">
           Ajouter un Plat
         </button>
       </div>
@@ -39,24 +39,43 @@
       <!-- Filtres et recherche -->
       <div class="filters">
         <div class="search-box">
+          <label for="search-input" class="sr-only">Rechercher un plat</label>
           <input 
+            id="search-input"
             v-model="searchQuery"
             type="text" 
             placeholder="Rechercher un plat..."
             class="search-input"
+            autocomplete="off"
           >
         </div>
-        <select v-model="categoryFilter" class="filter-select">
-          <option value="">Toutes les catégories</option>
-          <option v-for="category in categories" :key="category.id" :value="category.id">
-            {{ category.name }}
-          </option>
-        </select>
-        <select v-model="availabilityFilter" class="filter-select">
-          <option value="">Tous les statuts</option>
-          <option value="available">Disponible</option>
-          <option value="unavailable">Indisponible</option>
-        </select>
+        <div class="filter-group">
+          <label for="category-filter" class="sr-only">Filtrer par catégorie</label>
+          <select 
+            id="category-filter"
+            v-model="categoryFilter" 
+            class="filter-select"
+            name="category-filter"
+          >
+            <option value="">Toutes les catégories</option>
+            <option v-for="category in categories" :key="category.id" :value="category.id">
+              {{ category.name }}
+            </option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label for="availability-filter" class="sr-only">Filtrer par disponibilité</label>
+          <select 
+            id="availability-filter"
+            v-model="availabilityFilter" 
+            class="filter-select"
+            name="availability-filter"
+          >
+            <option value="">Tous les statuts</option>
+            <option value="available">Disponible</option>
+            <option value="unavailable">Indisponible</option>
+          </select>
+        </div>
       </div>
 
       <!-- Liste des éléments du menu -->
@@ -112,7 +131,7 @@
     <div v-if="activeSection === 'categories'" class="section-content">
       <div class="section-header">
         <h3>Gestion des Catégories</h3>
-        <button @click="showAddCategoryModal = true" class="btn-primary">
+        <button @click="openAddCategoryModal" class="btn-primary">
           Ajouter une Catégorie
         </button>
       </div>
@@ -141,10 +160,10 @@
       <div class="section-header">
         <h3>Gestion des Promotions</h3>
         <div class="promotion-actions-header">
-          <button @click="showCreatePromotionModal = true" class="btn-primary">
+          <button @click="openCreatePromotionModal" class="btn-primary">
             Créer Promotion
           </button>
-          <button @click="showPublishPromotionModal = true" class="btn-secondary">
+          <button @click="openPublishPromotionModal" class="btn-secondary">
             Publier Promotion
           </button>
         </div>
@@ -226,9 +245,10 @@
       </div>
     </div>
 
+    <!-- MODALS -->
     <!-- Modal pour ajouter/modifier un plat -->
-    <div v-if="showAddItemModal" class="modal-overlay">
-      <div class="modal large-modal">
+    <div v-if="showAddItemModal" class="modal-overlay" @click="closeModal">
+      <div class="modal large-modal" @click.stop>
         <div class="modal-header">
           <h3>{{ editingItem ? 'Modifier' : 'Ajouter' }} un Plat</h3>
           <button @click="closeModal" class="btn-close">×</button>
@@ -237,8 +257,8 @@
           <form @submit.prevent="saveItem">
             <div class="form-row">
               <div class="form-group">
-                <label>Catégorie *</label>
-                <select v-model="itemForm.categoryId" required>
+                <label for="item-category">Catégorie *</label>
+                <select id="item-category" v-model="itemForm.categoryId" required name="item-category" autocomplete="category">
                   <option value="">Sélectionner une catégorie</option>
                   <option v-for="category in categories" :key="category.id" :value="category.id">
                     {{ category.name }}
@@ -246,50 +266,50 @@
                 </select>
               </div>
               <div class="form-group">
-                <label>Nom du plat *</label>
-                <input v-model="itemForm.name" type="text" required>
+                <label for="item-name">Nom du plat *</label>
+                <input id="item-name" v-model="itemForm.name" type="text" required name="item-name" autocomplete="off">
               </div>
             </div>
 
             <div class="form-group">
-              <label>Description</label>
-              <textarea v-model="itemForm.description" rows="3" placeholder="Description du plat..."></textarea>
+              <label for="item-description">Description</label>
+              <textarea id="item-description" v-model="itemForm.description" rows="3" placeholder="Description du plat..." name="item-description"></textarea>
             </div>
 
             <div class="form-row">
               <div class="form-group">
-                <label>Prix (FC) *</label>
-                <input v-model="itemForm.price" type="number" step="0.01" min="0" required>
+                <label for="item-price">Prix (FC) *</label>
+                <input id="item-price" v-model="itemForm.price" type="number" step="0.01" min="0" required name="item-price" autocomplete="off">
               </div>
               <div class="form-group">
-                <label>Temps de préparation (min)</label>
-                <input v-model="itemForm.preparationTime" type="number" min="0">
+                <label for="item-preparation-time">Temps de préparation (min)</label>
+                <input id="item-preparation-time" v-model="itemForm.preparationTime" type="number" min="0" name="item-preparation-time" autocomplete="off">
               </div>
             </div>
 
             <div class="form-row">
               <div class="form-group">
                 <label class="checkbox-label">
-                  <input type="checkbox" v-model="itemForm.available">
+                  <input type="checkbox" v-model="itemForm.available" id="item-available" name="item-available">
                   Disponible
                 </label>
               </div>
               <div class="form-group">
                 <label class="checkbox-label">
-                  <input type="checkbox" v-model="itemForm.isDailySpecial">
+                  <input type="checkbox" v-model="itemForm.isDailySpecial" id="item-daily-special" name="item-daily-special">
                   Plat du jour
                 </label>
               </div>
             </div>
 
             <div class="form-group">
-              <label>Ingrédients (séparés par des virgules)</label>
-              <textarea v-model="itemForm.ingredientsText" rows="2" placeholder="Tomate, fromage, basilic..."></textarea>
+              <label for="item-ingredients">Ingrédients (séparés par des virgules)</label>
+              <textarea id="item-ingredients" v-model="itemForm.ingredientsText" rows="2" placeholder="Tomate, fromage, basilic..." name="item-ingredients"></textarea>
             </div>
 
             <div class="form-group">
-              <label>Image du plat</label>
-              <input type="file" @change="handleImageUpload" accept="image/*">
+              <label for="item-image">Image du plat</label>
+              <input id="item-image" type="file" @change="handleImageUpload" accept="image/*" name="item-image">
               <div v-if="itemForm.image" class="image-preview">
                 <img :src="itemForm.image" alt="Preview">
               </div>
@@ -307,8 +327,8 @@
     </div>
 
     <!-- Modal pour créer une promotion -->
-    <div v-if="showCreatePromotionModal" class="modal-overlay">
-      <div class="modal large-modal">
+    <div v-if="showCreatePromotionModal" class="modal-overlay" @click="closePromotionModal">
+      <div class="modal large-modal" @click.stop>
         <div class="modal-header">
           <h3>{{ editingPromotion ? 'Modifier' : 'Créer' }} une Promotion</h3>
           <button @click="closePromotionModal" class="btn-close">×</button>
@@ -317,12 +337,12 @@
           <form @submit.prevent="savePromotion">
             <div class="form-row">
               <div class="form-group">
-                <label>Titre de la promotion *</label>
-                <input v-model="promotionForm.title" type="text" required>
+                <label for="promotion-title">Titre de la promotion *</label>
+                <input id="promotion-title" v-model="promotionForm.title" type="text" required name="promotion-title" autocomplete="off">
               </div>
               <div class="form-group">
-                <label>Type de promotion *</label>
-                <select v-model="promotionForm.type" required>
+                <label for="promotion-type">Type de promotion *</label>
+                <select id="promotion-type" v-model="promotionForm.type" required name="promotion-type" autocomplete="off">
                   <option value="">Sélectionner un type</option>
                   <option v-for="type in promotionTypes" :key="type.value" :value="type.value">
                     {{ type.label }}
@@ -332,51 +352,51 @@
             </div>
 
             <div class="form-group">
-              <label>Description *</label>
-              <textarea v-model="promotionForm.description" rows="3" required></textarea>
+              <label for="promotion-description">Description *</label>
+              <textarea id="promotion-description" v-model="promotionForm.description" rows="3" required name="promotion-description"></textarea>
             </div>
 
             <div class="form-row">
               <div class="form-group">
-                <label>Date de début *</label>
-                <input v-model="promotionForm.startDate" type="date" required>
+                <label for="promotion-start-date">Date de début *</label>
+                <input id="promotion-start-date" v-model="promotionForm.startDate" type="date" required name="promotion-start-date" autocomplete="off">
               </div>
               <div class="form-group">
-                <label>Date de fin *</label>
-                <input v-model="promotionForm.endDate" type="date" required>
-              </div>
-            </div>
-
-            <div class="form-row">
-              <div class="form-group">
-                <label>Utilisation maximum</label>
-                <input v-model="promotionForm.maxUsage" type="number" min="1">
-              </div>
-              <div class="form-group">
-                <label>Valeur minimale du panier (FC)</label>
-                <input v-model="promotionForm.minCartValue" type="number" step="0.01" min="0">
+                <label for="promotion-end-date">Date de fin *</label>
+                <input id="promotion-end-date" v-model="promotionForm.endDate" type="date" required name="promotion-end-date" autocomplete="off">
               </div>
             </div>
 
             <div class="form-row">
               <div class="form-group">
-                <label>Code promotionnel *</label>
-                <input v-model="promotionForm.promoCode" type="text" required>
+                <label for="promotion-max-usage">Utilisation maximum</label>
+                <input id="promotion-max-usage" v-model="promotionForm.maxUsage" type="number" min="1" name="promotion-max-usage" autocomplete="off">
               </div>
               <div class="form-group">
-                <label>Conditions (points requis)</label>
-                <input v-model="promotionForm.requiredPoints" type="number" min="0">
+                <label for="promotion-min-cart">Valeur minimale du panier (FC)</label>
+                <input id="promotion-min-cart" v-model="promotionForm.minCartValue" type="number" step="0.01" min="0" name="promotion-min-cart" autocomplete="off">
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="promotion-code">Code promotionnel *</label>
+                <input id="promotion-code" v-model="promotionForm.promoCode" type="text" required name="promotion-code" autocomplete="off">
+              </div>
+              <div class="form-group">
+                <label for="promotion-points">Conditions (points requis)</label>
+                <input id="promotion-points" v-model="promotionForm.requiredPoints" type="number" min="0" name="promotion-points" autocomplete="off">
               </div>
             </div>
 
             <div class="form-group">
-              <label>Détails supplémentaires</label>
-              <textarea v-model="promotionForm.details" rows="2"></textarea>
+              <label for="promotion-details">Détails supplémentaires</label>
+              <textarea id="promotion-details" v-model="promotionForm.details" rows="2" name="promotion-details"></textarea>
             </div>
 
             <div class="form-group">
-              <label>Image de la promotion</label>
-              <input type="file" @change="handlePromotionImageUpload" accept="image/*">
+              <label for="promotion-image">Image de la promotion</label>
+              <input id="promotion-image" type="file" @change="handlePromotionImageUpload" accept="image/*" name="promotion-image">
             </div>
 
             <div class="modal-actions">
@@ -391,8 +411,8 @@
     </div>
 
     <!-- Modal pour publier une promotion -->
-    <div v-if="showPublishPromotionModal" class="modal-overlay">
-      <div class="modal">
+    <div v-if="showPublishPromotionModal" class="modal-overlay" @click="closePublishModal">
+      <div class="modal" @click.stop>
         <div class="modal-header">
           <h3>Publier une Promotion</h3>
           <button @click="closePublishModal" class="btn-close">×</button>
@@ -400,8 +420,8 @@
         <div class="modal-body">
           <form @submit.prevent="publishPromotion">
             <div class="form-group">
-              <label>Sélectionner une promotion *</label>
-              <select v-model="publishForm.promotionId" required>
+              <label for="publish-promotion">Sélectionner une promotion *</label>
+              <select id="publish-promotion" v-model="publishForm.promotionId" required name="publish-promotion" autocomplete="off">
                 <option value="">Choisir une promotion</option>
                 <option 
                   v-for="promo in unpublishedPromotions" 
@@ -414,8 +434,8 @@
             </div>
 
             <div class="form-group">
-              <label>Sélectionner un plat *</label>
-              <select v-model="publishForm.menuItemId" required>
+              <label for="publish-menu-item">Sélectionner un plat *</label>
+              <select id="publish-menu-item" v-model="publishForm.menuItemId" required name="publish-menu-item" autocomplete="off">
                 <option value="">Choisir un plat</option>
                 <option 
                   v-for="item in availableMenuItems" 
@@ -428,8 +448,8 @@
             </div>
 
             <div class="form-group">
-              <label>Prix promotionnel (FC) *</label>
-              <input v-model="publishForm.promotionalPrice" type="number" step="0.01" min="0" required>
+              <label for="publish-price">Prix promotionnel (FC) *</label>
+              <input id="publish-price" v-model="publishForm.promotionalPrice" type="number" step="0.01" min="0" required name="publish-price" autocomplete="off">
             </div>
 
             <div class="modal-actions">
@@ -442,8 +462,8 @@
     </div>
 
     <!-- Modal pour gérer les catégories -->
-    <div v-if="showAddCategoryModal" class="modal-overlay">
-      <div class="modal">
+    <div v-if="showAddCategoryModal" class="modal-overlay" @click="closeCategoryModal">
+      <div class="modal" @click.stop>
         <div class="modal-header">
           <h3>{{ editingCategory ? 'Modifier' : 'Ajouter' }} une Catégorie</h3>
           <button @click="closeCategoryModal" class="btn-close">×</button>
@@ -451,16 +471,16 @@
         <div class="modal-body">
           <form @submit.prevent="saveCategory">
             <div class="form-group">
-              <label>Nom de la catégorie *</label>
-              <input v-model="categoryForm.name" type="text" required>
+              <label for="category-name">Nom de la catégorie *</label>
+              <input id="category-name" v-model="categoryForm.name" type="text" required name="category-name" autocomplete="off">
             </div>
             <div class="form-group">
-              <label>Description</label>
-              <textarea v-model="categoryForm.description" rows="3"></textarea>
+              <label for="category-description">Description</label>
+              <textarea id="category-description" v-model="categoryForm.description" rows="3" name="category-description"></textarea>
             </div>
             <div class="form-group">
-              <label>Ordre d'affichage</label>
-              <input v-model="categoryForm.displayOrder" type="number" min="1">
+              <label for="category-order">Ordre d'affichage</label>
+              <input id="category-order" v-model="categoryForm.displayOrder" type="number" min="1" name="category-order" autocomplete="off">
             </div>
             <div class="modal-actions">
               <button type="button" @click="closeCategoryModal" class="btn-secondary">Annuler</button>
@@ -476,7 +496,7 @@
 </template>
 
 <script setup>
-import { ref, computed, reactive } from 'vue'
+import { ref, computed, reactive, onMounted, watch } from 'vue'
 
 // États pour la navigation
 const activeSection = ref('menu')
@@ -677,6 +697,23 @@ const getPromotionStatusText = (status) => {
   return statusMap[status] || status
 }
 
+// Méthodes pour ouvrir les modals
+const openAddItemModal = () => {
+  showAddItemModal.value = true
+}
+
+const openCreatePromotionModal = () => {
+  showCreatePromotionModal.value = true
+}
+
+const openPublishPromotionModal = () => {
+  showPublishPromotionModal.value = true
+}
+
+const openAddCategoryModal = () => {
+  showAddCategoryModal.value = true
+}
+
 // Méthodes pour la gestion du menu
 const editItem = (item) => {
   editingItem.value = item
@@ -690,7 +727,6 @@ const editItem = (item) => {
 const deleteItem = (id) => {
   if (confirm('Êtes-vous sûr de vouloir supprimer ce plat ?')) {
     menuItems.value = menuItems.value.filter(item => item.id !== id)
-    // Supprimer aussi les promotions publiées associées
     publishedPromotions.value = publishedPromotions.value.filter(promo => promo.menuItemId !== id)
   }
 }
@@ -711,14 +747,13 @@ const saveItem = () => {
   }
 
   if (editingItem.value) {
-    // Modification
     const index = menuItems.value.findIndex(item => item.id === editingItem.value.id)
     menuItems.value[index] = { ...itemData, id: editingItem.value.id }
   } else {
-    // Ajout
+    const maxId = menuItems.value.length > 0 ? Math.max(...menuItems.value.map(i => i.id)) : 0
     const newItem = {
       ...itemData,
-      id: Math.max(...menuItems.value.map(i => i.id)) + 1
+      id: maxId + 1
     }
     menuItems.value.push(newItem)
   }
@@ -756,14 +791,13 @@ const savePromotion = () => {
   }
 
   if (editingPromotion.value) {
-    // Modification
     const index = promotions.value.findIndex(promo => promo.id === editingPromotion.value.id)
     promotions.value[index] = { ...promotionData, id: editingPromotion.value.id }
   } else {
-    // Ajout
+    const maxId = promotions.value.length > 0 ? Math.max(...promotions.value.map(p => p.id)) : 0
     const newPromotion = {
       ...promotionData,
-      id: Math.max(...promotions.value.map(p => p.id)) + 1,
+      id: maxId + 1,
       status: 'draft'
     }
     promotions.value.push(newPromotion)
@@ -776,8 +810,9 @@ const publishPromotion = () => {
   const menuItem = menuItems.value.find(m => m.id === parseInt(publishForm.menuItemId))
 
   if (promotion && menuItem) {
+    const maxId = publishedPromotions.value.length > 0 ? Math.max(...publishedPromotions.value.map(p => p.id)) : 0
     const newPublishedPromo = {
-      id: Math.max(...publishedPromotions.value.map(p => p.id)) + 1,
+      id: maxId + 1,
       promotionId: parseInt(publishForm.promotionId),
       promotionTitle: promotion.title,
       menuItemId: parseInt(publishForm.menuItemId),
@@ -814,7 +849,6 @@ const editCategory = (category) => {
 
 const deleteCategory = (id) => {
   if (confirm('Êtes-vous sûr de vouloir supprimer cette catégorie ?')) {
-    // Vérifier si des plats utilisent cette catégorie
     const itemsInCategory = menuItems.value.filter(item => item.categoryId === id)
     if (itemsInCategory.length > 0) {
       alert('Impossible de supprimer cette catégorie car des plats y sont associés.')
@@ -831,14 +865,13 @@ const saveCategory = () => {
   }
 
   if (editingCategory.value) {
-    // Modification
     const index = categories.value.findIndex(cat => cat.id === editingCategory.value.id)
     categories.value[index] = { ...categoryData, id: editingCategory.value.id }
   } else {
-    // Ajout
+    const maxId = categories.value.length > 0 ? Math.max(...categories.value.map(c => c.id)) : 0
     const newCategory = {
       ...categoryData,
-      id: Math.max(...categories.value.map(c => c.id)) + 1
+      id: maxId + 1
     }
     categories.value.push(newCategory)
   }
@@ -873,7 +906,20 @@ const closeModal = () => {
 const closePromotionModal = () => {
   showCreatePromotionModal.value = false
   editingPromotion.value = null
-  Object.keys(promotionForm).forEach(key => promotionForm[key] = '')
+  Object.assign(promotionForm, {
+    title: '',
+    description: '',
+    type: '',
+    startDate: '',
+    endDate: '',
+    maxUsage: '',
+    minCartValue: '',
+    promoCode: '',
+    requiredPoints: '',
+    details: '',
+    image: '',
+    status: 'draft'
+  })
 }
 
 const closePublishModal = () => {
@@ -887,10 +933,28 @@ const closeCategoryModal = () => {
   Object.keys(categoryForm).forEach(key => categoryForm[key] = '')
 }
 
+// Gestion du body quand les modals sont ouverts
+watch([showAddItemModal, showCreatePromotionModal, showPublishPromotionModal, showAddCategoryModal], 
+  ([itemModal, promoModal, publishModal, categoryModal]) => {
+    const hasModalOpen = itemModal || promoModal || publishModal || categoryModal
+    
+    if (hasModalOpen) {
+      document.body.classList.add('modal-open')
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.classList.remove('modal-open')
+      document.body.style.overflow = ''
+    }
+  }
+)
 
+onMounted(() => {
+  console.log('MenuView component mounted')
+})
 </script>
 
 <style scoped>
+/* Reset et styles de base */
 .menu-view {
   padding: 0;
   background-color: #f8f9fa;
@@ -970,25 +1034,44 @@ const closeCategoryModal = () => {
   gap: 1rem;
   margin-bottom: 1.5rem;
   flex-wrap: wrap;
+  align-items: end;
+}
+
+.search-box {
+  flex: 1;
+  min-width: 250px;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
 }
 
 .search-input, .filter-select {
+  width: 100%;
   padding: 0.75rem;
   border: 1px solid #ddd;
   border-radius: 6px;
   font-size: 0.9rem;
 }
 
-.search-input {
-  flex: 1;
-  min-width: 200px;
-}
-
 .filter-select {
   min-width: 150px;
 }
 
-/* Styles pour les cartes de menu */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Styles pour les cartes */
 .menu-items-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
@@ -1118,7 +1201,6 @@ const closeCategoryModal = () => {
   gap: 0.5rem;
 }
 
-/* Styles pour les catégories */
 .categories-list {
   display: flex;
   flex-direction: column;
@@ -1156,7 +1238,6 @@ const closeCategoryModal = () => {
   gap: 0.5rem;
 }
 
-/* Styles pour les promotions */
 .promotions-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
@@ -1279,7 +1360,6 @@ const closeCategoryModal = () => {
   gap: 0.5rem;
 }
 
-/* Promotions publiées */
 .published-promotions {
   margin-top: 2rem;
   padding-top: 2rem;
@@ -1400,31 +1480,58 @@ const closeCategoryModal = () => {
   color: #6c757d;
 }
 
-/* Modals */
+/* MODALS - STYLES CORRIGÉS */
 .modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0,0,0,0.5);
-  display: flex;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex !important;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 9999;
+  opacity: 1 !important;
+  visibility: visible !important;
 }
 
 .modal {
   background: white;
-  border-radius: 8px;
-  width: 90%;
+  border-radius: 12px;
+  width: 95%;
   max-width: 500px;
   max-height: 90vh;
   overflow-y: auto;
+  position: relative;
+  z-index: 10000;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+  animation: modalSlideIn 0.3s ease-out;
+  opacity: 1 !important;
+  visibility: visible !important;
+  transform: scale(1) !important;
 }
 
 .modal.large-modal {
   max-width: 700px;
+}
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-50px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.modal-overlay[style*="display: none"],
+.modal[style*="display: none"] {
+  display: flex !important;
+}
+body.modal-open {
+  overflow: hidden !important;
 }
 
 .modal-header {
@@ -1435,8 +1542,17 @@ const closeCategoryModal = () => {
   border-bottom: 1px solid #e9ecef;
 }
 
+
+.modal-overlay:not([style]) {
+  display: flex !important;
+}
+
+.modal:not([style]) {
+  display: block !important;
+}
 .modal-header h3 {
   margin: 0;
+  color: #2c3e50;
 }
 
 .btn-close {
@@ -1453,12 +1569,30 @@ const closeCategoryModal = () => {
   justify-content: center;
 }
 
+.btn-close:hover {
+  color: #2c3e50;
+}
+
 .modal-body {
   padding: 1.5rem;
 }
+.view-header {
+  background: white;
+  padding: 2rem;
+  margin-bottom: 1rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.menu-view {
+  padding: 0;
+  background-color: #f8f9fa;
+  min-height: 100%;
+}
 
 .form-group {
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
+  
 }
 
 .form-row {
@@ -1475,15 +1609,28 @@ const closeCategoryModal = () => {
   margin-bottom: 0.5rem;
   font-weight: 600;
   color: #2c3e50;
+  font-size: 14px;
 }
 
-.form-group input, .form-group select, .form-group textarea {
+.form-group input, 
+.form-group select, 
+.form-group textarea {
   width: 100%;
   padding: 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  font-size: 0.9rem;
+  border: 2px solid #e1e5e9;
+  border-radius: 8px;
+  font-size: 16px;
+  background: white;
+  transition: border-color 0.3s ease;
   box-sizing: border-box;
+}
+
+.form-group input:focus, 
+.form-group select:focus, 
+.form-group textarea:focus {
+  border-color: #a89f91;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(168, 159, 145, 0.1);
 }
 
 .checkbox-label {
@@ -1492,10 +1639,13 @@ const closeCategoryModal = () => {
   gap: 0.5rem;
   font-weight: normal;
   cursor: pointer;
+  margin-bottom: 0;
 }
 
 .checkbox-label input[type="checkbox"] {
-  width: auto;
+  width: 18px;
+  height: 18px;
+  margin: 0;
 }
 
 .image-preview {
@@ -1506,13 +1656,16 @@ const closeCategoryModal = () => {
   max-width: 100%;
   max-height: 200px;
   border-radius: 6px;
+  border: 1px solid #e9ecef;
 }
 
 .modal-actions {
   display: flex;
   gap: 1rem;
   justify-content: flex-end;
-  margin-top: 1.5rem;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e9ecef;
 }
 
 /* Responsive */
@@ -1535,7 +1688,7 @@ const closeCategoryModal = () => {
     flex-direction: column;
   }
   
-  .search-input, .filter-select {
+  .search-box, .filter-group {
     width: 100%;
   }
   
@@ -1560,35 +1713,11 @@ const closeCategoryModal = () => {
   .modal {
     width: 95%;
     margin: 1rem;
+    max-height: 85vh;
   }
-
-  /* AJOUTEZ ces styles à la section Modals */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0,0,0,0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999; /* Augmentez le z-index */
-}
-
-.modal {
-  background: white;
-  border-radius: 8px;
-  width: 90%;
-  max-width: 500px;
-  max-height: 90vh;
-  overflow-y: auto;
-  z-index: 10000; /* Ajoutez ceci */
-  position: relative; /* Ajoutez ceci */
-}
-
-.modal.large-modal {
-  max-width: 700px;
-}
+  
+  .modal.large-modal {
+    max-width: 95%;
+  }
 }
 </style>

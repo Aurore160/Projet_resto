@@ -32,6 +32,11 @@ const routes = [
         component: () => import('../views/UtilisateursView.vue')
       },
       {
+        path: 'menu',
+        name: 'AdminMenu',
+        component: () => import('../views/MenuView.vue')
+      },
+      {
         path: 'employes',
         name: 'AdminEmployes',
         component: () => import('../views/EmployesView.vue')
@@ -40,11 +45,6 @@ const routes = [
         path: 'commandes',
         name: 'AdminCommandes',
         component: () => import('../views/CommandesView.vue')
-      },
-      {
-        path: 'menu',
-        name: 'AdminMenu',
-        component: () => import('../views/MenuView.vue')
       },
       
       {

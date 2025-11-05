@@ -58,7 +58,7 @@ const navItems = ref([
   { to: '/admin/utilisateurs', text: 'Utilisateurs' },
   { to: '/admin/employes', text: 'Employés' },
   { to: '/admin/commandes', text: 'Commandes' },
-  { to: '/admin/menu', text: 'Menu & Promotions' }, // Nouvel item
+  { to: '/admin/menu', text: 'Menu et Promotion' },
   { to: '/admin/statistiques', text: 'Statistiques' },
   { to: '/admin/parametres', text: 'Paramètres' }
 ])
@@ -68,8 +68,8 @@ const pageTitles = {
   '/admin/utilisateurs': 'Gestion des Utilisateurs',
   '/admin/employes': 'Gestion des Employés',
   '/admin/commandes': 'Gestion des Commandes',
+  '/admin/menu': 'Gestion des Menus et Promotions',
   '/admin/statistiques': 'Statistiques Avancées',
-  '/admin/menu': 'Menu et Promotions',
   '/admin/parametres': 'Paramètres'
 }
 
