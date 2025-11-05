@@ -65,7 +65,7 @@ const login = async () => {
 .form-section {
     background-color: rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(3px);
-    box-shadow: 0 0 20px rgba(207, 189, 151, 0.9);
+    box-shadow: none;
     position: absolute;
     right: 0;
     top: 50%;

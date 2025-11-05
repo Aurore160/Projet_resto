@@ -6,10 +6,10 @@
                 Entrez votre adresse mail pour recevoir un lien de réinitialisation. 
             </p>
                 
-            <form @submit.prevent="resetPassword">
+            <form @submit.prevent="goToRecovery">
                 <label for="email"> Adresse mail</label>
                 <input type="email" id="email" v-model="email" placeholder="Entrez votre adresse mail" required />
-
+                
                 <button type="submit"> Envoyer le lien </button>
             </form>
                
@@ -22,11 +22,20 @@
 
 <script setup>
 import { ref } from "vue";
+import { useRouter } from "vue-router";
 
 const email = ref("");
+const router = useRouter();
 
-const resetPassword = async () => {
-    console.log("Demande de réinitialisation :", email.value);
+const goToRecovery = async () => {
+    if(!email.value) {
+        alert("Veuillez entrer votre adresse mail ");
+        return;
+    }
+    console.log(" Lien envoyé à :", email.value);
+
+
+    router.push("/recovery");
 };
 </script>
 
@@ -48,7 +57,7 @@ const resetPassword = async () => {
 .form-section {
     background-color: rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(3px);
-    box-shadow: 0 0 20px rgba(207, 189, 151, 0.9);
+    box-shadow: none;
     position: absolute;
     right: 0;
     top: 50%;

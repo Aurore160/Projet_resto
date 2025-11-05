@@ -5,31 +5,31 @@
 
             <form @submit.prevent="registerUser">  
                 <label for="nom"> Nom </label>
-                <input type="text" id="nom"  v-model="nom" placeholder=" Entrez votre nom " required>
+                <input type="text" id="nom"  v-model="form.nom" placeholder=" Entrez votre nom " required>
                        
                 <label for="prenom">Prénom </label> 
-                <input type="text" id="prenom" v-model="prenom" placeholder=" Entrez votre prénom " required>
+                <input type="text" id="prenom" v-model="form.prenom" placeholder=" Entrez votre prénom " required>
                       
                 <label for="email"> Adresse mail </label>
-                <input type="email" id="email" v-model="email" placeholder="Entrez votre adresse mail " required>
+                <input type="email" id="email" v-model="form.mail" placeholder="Entrez votre adresse mail " required>
 
                 <label for="password"> Mot de passe </label>
-                <input type="password" id="password" v-model="password" placeholder=" Entrez votre mot de passe " required>
+                <input type="password" id="password" v-model="form.password" placeholder=" Entrez votre mot de passe " required>
 
                 <label  for="confirmPassword"> Confirmer le mot de passe </label>
-                <input type="password" id="confirmPassword" v-model="confirmPassword" placeholder=" Confirmez votre mot de passe " required>
+                <input type="password" id="confirmPassword" v-model="form.passwordConfirmation" placeholder=" Confirmez votre mot de passe " required>
 
-                <button type="submit"> S'inscrire </button>
-                 <p class="message"> {{ message }} </p>
+                <label  for="codeParrainage"> Code de votre parrain </label>
+                <input type="text" id="codeParrainage" v-model="form.parrainage" placeholder=" Code d'un utilisateur qui vous a parrainé " >
+
+
+                <button type="submit" class="btn accent"> S'inscrire </button>
 
                  <p class="login-link">
                     Vous avez déjà un compte ?  
                      <router-link to="/" class="link"> Se connecter </router-link>
                 </p>
             </form>
-
-               
-               
                
         </div>
     </div>
@@ -37,24 +37,44 @@
 
 
 <script setup> 
-import { ref } from "vue"
+import { ref } from "vue";
+import { useUserStore } from "@/stores/userStore"
 
-const nom = ref("")
-const prenom = ref("")
-const email = ref("")
-const password = ref("")
-const confirmPassword = ref("")
-const message = ref("")
+const form = ref({
+    prenom: "",
+    mail: "",
+    password: "", 
+    passwordConfirmation: "",
+    parrainnage: ""
+});
 
-const register = async () => {
-    if (password.value !== confirmPassword.value) {
-    message.value = " Les mots de passe ne correspondent pas  "
-    return
 
-}
+const userStore = useUserStore();
 
-console.log("Inscription de : ", nom.value, prenom.value, email.value)
+async function registerUser() {
+    try {
+        if (form.value.password !== form.value.passwordConfirmation) {
+            alert("Les mots de passe ne correspondent pas.")
+            return
+        }
+        // back-end pour la simulation d'une inscription 
 
+        const newUser = { ...form.value, ide: Date.now()}
+        
+        // si on entre le code de parrainage 
+
+        if (form.value.parrainage) {
+            const parrain = users.find(u => u.parrainage === form.value.parrainage)
+            if (parrain) {
+                store.addRefferal(parrain, newUser)
+            }
+        }
+
+        alert("Inscription réussie !")
+        form.value = {nom: "", prenom: "", mail:"", password:"", passwordConfirmation: "", parrainage: ""}
+    } catch (err) {
+        console.error(err)
+    }
 }
 
 </script>
@@ -77,7 +97,7 @@ console.log("Inscription de : ", nom.value, prenom.value, email.value)
 .form-section {
     background-color: rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(3px);
-    box-shadow: 0 0 20px rgba(207, 189, 151, 0.9);
+    box-shadow: none;
     position: absolute;
     right: 0;
     top: 50%;
