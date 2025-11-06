@@ -62,6 +62,25 @@ const login = async () => {
 
 }
 
+
+
+@keyframes monAnimationDeFond {
+    0% {
+        opacity: 0;
+        transform: scale(0.5);
+    }
+    100%{
+        opacity: 1;
+        transform: scale(1);
+    } 
+
+}
+
+.body{
+    background-image: url("@/assets/login.jpg");
+    animation: monAnimationDeFond 5s infite; 
+}
+
 .form-section {
     background-color: rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(3px);
