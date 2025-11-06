@@ -59,6 +59,7 @@ const navItems = ref([
   { to: '/admin/employes', text: 'Employés' },
   { to: '/admin/commandes', text: 'Commandes' },
   { to: '/admin/menu', text: 'Menu et Promotion' },
+  { to: '/admin/reclamation', text: 'Réclamations et Profit' },
   { to: '/admin/statistiques', text: 'Statistiques' },
   { to: '/admin/parametres', text: 'Paramètres' }
 ])
@@ -69,6 +70,7 @@ const pageTitles = {
   '/admin/employes': 'Gestion des Employés',
   '/admin/commandes': 'Gestion des Commandes',
   '/admin/menu': 'Gestion des Menus et Promotions',
+  '/admin/reclamation':'Réclamations et Profit',
   '/admin/statistiques': 'Statistiques Avancées',
   '/admin/parametres': 'Paramètres'
 }
@@ -92,7 +94,7 @@ const deconnexion = () => {
 .admin-layout {
   display: flex;
   min-height: 100vh;
-  height: 100vh; /* Empêche le scroll global */
+  height: 120vh; /* Empêche le scroll global */
   overflow: hidden; /* Cache tout débordement global */
 }
 

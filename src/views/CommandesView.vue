@@ -1,294 +1,805 @@
 <template>
-  <div class="dashboard-commandes">
+  <div class="commandes-view">
+    <!-- Header -->
+    <div class="view-header">
+      <h2>Tableau de Bord des Commandes</h2>
+      <p>Surveillez et géz l'ensemble des commandes de votre restaurant</p>
+    </div>
+
     <!-- ==================== SECTION 1 : Statistiques globales ==================== -->
-    <div class="stats-cards">
-      <div class="card" v-for="card in stats" :key="card.titre">
-        <div class="card-header">
-          <span class="card-icon">{{ card.emoji }}</span>
-          <h3>{{ card.titre }}</h3>
-        </div>
-        <div class="card-gauge">
-          <Gauge :value="card.valeur" :max="totalCommands" :color="card.color" :size="140" />
-        </div>
-        <p class="card-value">{{ card.valeur }}</p>
-        <small :class="card.tendance > 0 ? 'positive' : 'negative'">
-          {{ card.tendance > 0 ? '+' : '' }}{{ card.tendance }}%
-        </small>
-      </div>
-    </div>
-
-    <!-- ==================== SECTION 2 : Graphique Camembert ==================== -->
-    <div class="chart-section chart-pie">
-      <h2>Répartition des Statuts de Commandes</h2>
-      <div class="chart-pie-inner">
-        <canvas id="statusChart"></canvas>
-      </div>
-      <div class="chart-pie-legend text-muted small mt-2">Survoler les segments pour voir les détails.</div>
-    </div>
-
-    <!-- ==================== SECTION 3 : Graphique Ligne Commandes ==================== -->
-    <div class="chart-section">
-      <h2>Évolution des Commandes</h2>
-      <canvas id="ordersChart"></canvas>
-    </div>
-
-    <!-- ==================== SECTION 4 : Plats en Promotion ==================== -->
-    <div class="promos-section">
-      <h2>Plats en Promotion</h2>
-      <div class="plats-grid">
-        <div v-for="plat in plats" :key="plat.nom" class="plat-card">
-          <img :src="plat.image" alt="Image du plat" />
-          <div class="plat-info">
-            <h3>{{ plat.nom }}</h3>
-            <p>{{ plat.description }}</p>
-            <p class="prix">{{ plat.prix }} FC</p>
-            <span class="note">⭐ {{ plat.note }}/5</span>
+    <div class="stats-section">
+      <h3>Aperçu des Commandes</h3>
+      <div class="stats-cards">
+        <div class="stat-card" v-for="stat in stats" :key="stat.titre">
+          
+          <div class="stat-content">
+            <h4>{{ stat.titre }}</h4>
+            <div class="stat-value">{{ stat.valeur }}</div>
+            <div :class="['stat-trend', stat.tendance > 0 ? 'positive' : 'negative']">
+              {{ stat.tendance > 0 ? '↗' : '↘' }} {{ Math.abs(stat.tendance) }}%
+            </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- ==================== SECTION 5 : Flux des Commandes ==================== -->
-    <div class="flux-section">
-      <h2>Flux des Commandes</h2>
-      <p class="small text-muted">Détails par type de commande (Livraison / Retrait / Sur place)</p>
-      <canvas id="fluxChart"></canvas>
+    <!-- ==================== SECTION 2 : Graphiques principaux ==================== -->
+    <div class="charts-grid">
+      <!-- Graphique Camembert -->
+      <div class="chart-card">
+        <div class="chart-header">
+          <h3>Répartition des Statuts</h3>
+          <span class="chart-subtitle">Distribution des commandes par statut</span>
+        </div>
+        <div class="chart-container">
+          <canvas id="statusChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Graphique Ligne -->
+      <div class="chart-card">
+        <div class="chart-header">
+          <h3>Évolution Hebdomadaire</h3>
+          <span class="chart-subtitle">Tendance des commandes sur 7 jours</span>
+        </div>
+        <div class="chart-container">
+          <canvas id="ordersChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== SECTION 3 : Plats en Promotion ==================== -->
+    <div class="promotions-section">
+      <div class="section-header">
+        <h3>Plats en Promotion</h3>
+        <button @click="navigateToPromotions" class="btn-primary">
+          Gérer les Promotions
+        </button>
+      </div>
+      
+      <div v-if="promotedItems.length > 0" class="promotions-grid">
+        <div v-for="item in promotedItems" :key="item.id" class="promo-card">
+          <div class="promo-image">
+            <img :src="item.image || '/src/images/placeholder-food.jpg'" :alt="item.name" />
+            <div class="promo-badge">PROMO</div>
+          </div>
+          <div class="promo-content">
+            <h4>{{ item.name }}</h4>
+            <p class="promo-description">{{ item.description }}</p>
+            <div class="price-section">
+              <span class="original-price">{{ formatPrice(item.originalPrice) }}</span>
+              <span class="promo-price">{{ formatPrice(item.promotionalPrice) }}</span>
+            </div>
+            <div class="promo-dates">
+              Jusqu'au {{ formatDate(item.endDate) }}
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div v-else class="empty-state">
+        
+        <h4>Aucune promotion active</h4>
+        <p>Créez des promotions pour booster vos ventes</p>
+        <button @click="navigateToPromotions" class="btn-primary">
+          Créer une Promotion
+        </button>
+      </div>
+    </div>
+
+    <!-- ==================== SECTION 4 : Analyse des Flux ==================== -->
+    <div class="analysis-section">
+      <div class="section-header">
+        <h3>Analyse des Canaux de Commande</h3>
+        <span class="section-subtitle">Répartition par type de service</span>
+      </div>
+      
+      <div class="analysis-grid">
+        <div class="analysis-card large">
+          <div class="chart-container">
+            <canvas id="fluxChart"></canvas>
+          </div>
+        </div>
+        
+        <div class="analysis-card">
+          <div class="metric-card">
+            
+            <div class="metric-content">
+              <h4>Livraison</h4>
+              <div class="metric-value">65%</div>
+              <div class="metric-trend positive">+12%</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="analysis-card">
+          <div class="metric-card">
+            
+            <div class="metric-content">
+              <h4>Retrait</h4>
+              <div class="metric-value">25%</div>
+              <div class="metric-trend positive">+5%</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="analysis-card">
+          <div class="metric-card">
+            
+            <div class="metric-content">
+              <h4>Sur place</h4>
+              <div class="metric-value">10%</div>
+              <div class="metric-trend negative">-3%</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== SECTION 5 : Actions Rapides ==================== -->
+    <div class="quick-actions">
+      <h3>Actions Rapides</h3>
+      <div class="actions-grid">
+        <button @click="navigateToMenu" class="action-card">
+          
+          <div class="action-content">
+            <h4>Modifier le Menu</h4>
+            <p>Ajouter ou modifier des plats</p>
+          </div>
+        </button>
+        
+        <button @click="navigateToPromotions" class="action-card">
+          
+          <div class="action-content">
+            <h4>Gérer les Promotions</h4>
+            <p>Créer des offres spéciales</p>
+          </div>
+        </button>
+        
+        <button @click="viewReports" class="action-card">
+         
+          <div class="action-content">
+            <h4>Rapports Détaillés</h4>
+            <p>Analyses approfondies</p>
+          </div>
+        </button>
+        
+        <button @click="manageAPI" class="action-card">
+          <div class="action-icon">🔌</div>
+          <div class="action-content">
+            <h4>Intégrations API</h4>
+            <p>Configurer les services externes</p>
+          </div>
+        </button>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
 import { onMounted, ref, computed } from "vue";
+import { useRouter } from "vue-router";
 import Chart from "chart.js/auto";
-import Gauge from '../components/Gauge.vue'
 
+const router = useRouter();
+
+// Données des statistiques
 const stats = ref([
-  { key: 'total', titre: "Total Commandes", valeur: 425, emoji: "📦", tendance: +5, color: '#3B82F6' },
-  { key: 'pending', titre: "En attente", valeur: 25, emoji: "⏳", tendance: -3, color: '#FBBF24' },
-  { key: 'resolved', titre: "Résolues", valeur: 380, emoji: "✅", tendance: +10, color: '#10B981' },
-  { key: 'claims', titre: "Réclamations", valeur: 20, emoji: "⚠", tendance: +2, color: '#EF4444' },
+  { titre: "Total Commandes", valeur: 425, emoji: "📦", tendance: +5 },
+  { titre: "En Attente", valeur: 25, emoji: "⏳", tendance: -3 },
+  { titre: "Traitées", valeur: 380, emoji: "✅", tendance: +10 },
+  { titre: "Réclamations", valeur: 20, emoji: "⚠️", tendance: +2 },
 ]);
 
-const totalCommands = computed(() => {
-  const totalEntry = stats.value.find(c => c.key === 'total')
-  if (totalEntry) return totalEntry.valeur
-  return stats.value.reduce((s, c) => s + (c.valeur || 0), 0)
-})
-
-const plats = ref([
-  { nom: "Pizza Margherita", description: "Tomate, mozzarella, basilic", prix: 9500, note: 4.5, image: "/src/images/80e59ddd335067ac9aad370dc04917b9.JPG" },
-  { nom: "Burger Royal", description: "Boeuf, fromage, salade", prix: 11000, note: 4.7, image: "/src/images/breakfast.JPG" },
-  { nom: "Poulet Grillé", description: "Mariné aux épices", prix: 12500, note: 4.8, image: "/src/images/plats.JPG" },
-  { nom: "Pâtes Carbonara", description: "Crème, œuf, lardons", prix: 9000, note: 4.6, image: "/src/images/e6defb19e0d9a2947ce040c985ad60b3.JPG" },
+// Données des plats en promotion (connectées aux promotions réelles)
+const promotedItems = ref([
+  {
+    id: 1,
+    name: "Pizza Margherita",
+    description: "Tomate, mozzarella, basilic frais - Promotion spéciale",
+    originalPrice: 15000,
+    promotionalPrice: 12000,
+    image: "/src/images/80e59ddd335067ac9aad370dc04917b9.JPG",
+    endDate: "2024-12-31"
+  },
+  {
+    id: 2,
+    name: "Burger Royal",
+    description: "Bœuf, fromage, salade - Offre limitée",
+    originalPrice: 13000,
+    promotionalPrice: 11000,
+    image: "/src/images/breakfast.JPG",
+    endDate: "2024-12-25"
+  },
+  {
+    id: 3,
+    name: "Poulet Grillé",
+    description: "Mariné aux épices - Menu du jour",
+    originalPrice: 14000,
+    promotionalPrice: 12500,
+    image: "/src/images/plats.JPG",
+    endDate: "2024-12-20"
+  }
 ]);
 
+// Méthodes de navigation
+const navigateToPromotions = () => {
+  router.push('/admin/menu?section=promotions');
+};
+
+const navigateToMenu = () => {
+  router.push('/admin/menu');
+};
+
+const viewReports = () => {
+  // À implémenter avec l'API
+  console.log("Voir les rapports détaillés");
+};
+
+const manageAPI = () => {
+  // À implémenter avec l'API
+  console.log("Gérer les intégrations API");
+};
+
+// Méthodes utilitaires
+const formatPrice = (price) => {
+  return new Intl.NumberFormat('fr-FR').format(price) + ' FC';
+};
+
+const formatDate = (dateString) => {
+  return new Date(dateString).toLocaleDateString('fr-FR');
+};
+
+// Initialisation des graphiques
 onMounted(() => {
-  // === Graphique Camembert (petit, interactif) ===
+  // Graphique Camembert des statuts
   const ctxStatus = document.getElementById("statusChart");
   if (ctxStatus) {
-    try {
-      new Chart(ctxStatus, {
-    type: "pie",
-    data: {
-      labels: ["Nouvelles", "En attente", "Résolues", "Réclamations"],
-      datasets: [
-        {
-          data: [40, 25, 30, 15],
-          backgroundColor: ["#3B82F6", "#FBBF24", "#10B981", "#EF4444"],
-        },
-      ],
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { display: true, position: 'right', labels: { boxWidth: 12, padding: 8 } },
-        tooltip: {
-          callbacks: {
-            label: function(context){
-              const label = context.label || ''
-              const value = context.raw || 0
-              const sum = context.dataset.data.reduce((a,b)=>a+b,0)
-              const pct = ((value / sum) * 100).toFixed(1)
-              return `${label}: ${value} (${pct}%)`
+    new Chart(ctxStatus, {
+      type: "doughnut",
+      data: {
+        labels: ["Nouvelles", "En attente", "Traitées", "Réclamations"],
+        datasets: [{
+          data: [120, 25, 250, 20],
+          backgroundColor: ["#a89f91", "#e9b949", "#10b981", "#ef4444"],
+          borderWidth: 2,
+          borderColor: "#ffffff"
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '70%',
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: {
+              padding: 20,
+              usePointStyle: true,
             }
           }
         }
       }
-    },
-      })
-    } catch (e) { console.error('statusChart init error', e) }
-  } else { console.warn('statusChart canvas not found') }
+    });
+  }
 
-  // === Graphique Ligne (Évolution des commandes) ===
+  // Graphique d'évolution des commandes
   const ctxOrders = document.getElementById("ordersChart");
   if (ctxOrders) {
-    try {
-      new Chart(ctxOrders, {
-    type: "line",
-    data: {
-      labels: ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"],
-      datasets: [
-        {
-          label: "Commandes journalières",
-          data: [120, 200, 150, 300, 280, 350, 400],
-          borderColor: "#4CAF50",
-          backgroundColor: "rgba(76, 175, 80, 0.2)",
+    new Chart(ctxOrders, {
+      type: "line",
+      data: {
+        labels: ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"],
+        datasets: [{
+          label: "Commandes",
+          data: [45, 62, 58, 73, 81, 95, 110],
+          borderColor: "#a89f91",
+          backgroundColor: "rgba(168, 159, 145, 0.1)",
           fill: true,
           tension: 0.4,
+          borderWidth: 3
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false }
         },
-      ],
-    },
-        options: { responsive: true, plugins: { legend: { display: false } } },
-      })
-    } catch (e) { console.error('ordersChart init error', e) }
-  } else { console.warn('ordersChart canvas not found') }
-
-  // === Graphique Barres (Flux des commandes) - breakdown par type pour être plus parlant ===
-  const ctxFlux = document.getElementById("fluxChart");
-  if (ctxFlux) {
-    try {
-      new Chart(ctxFlux, {
-    type: "bar",
-    data: {
-      labels: ["Semaine 1", "Semaine 2", "Semaine 3", "Semaine 4"],
-      datasets: [
-        { label: 'Livraison', data: [300, 420, 480, 520], backgroundColor: '#3B82F6' },
-        { label: 'Retrait', data: [120, 200, 220, 300], backgroundColor: '#10B981' },
-        { label: 'Sur place', data: [80, 80, 100, 130], backgroundColor: '#FBBF24' }
-      ],
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { position: 'top' },
-        tooltip: {
-          mode: 'index',
-          intersect: false,
-          callbacks: {
-            label: function(context){
-              const label = context.dataset.label || ''
-                  const value = (context.parsed?.y ?? context.parsed) || 0
-                  return `${label}: ${value}`
+        scales: {
+          y: {
+            beginAtZero: true,
+            grid: {
+              color: "rgba(0,0,0,0.1)"
+            }
+          },
+          x: {
+            grid: {
+              display: false
             }
           }
         }
-      },
-      interaction: { mode: 'index', intersect: false },
-      scales: {
-        x: { stacked: true },
-        y: { stacked: true, beginAtZero: true }
       }
-    },
-      })
-    } catch (e) { console.error('fluxChart init error', e) }
-  } else { console.warn('fluxChart canvas not found') }
-  // no additional charts for gauges here; gauges rendered as components in template
+    });
+  }
+
+  // Graphique des flux de commandes
+  const ctxFlux = document.getElementById("fluxChart");
+  if (ctxFlux) {
+    new Chart(ctxFlux, {
+      type: "bar",
+      data: {
+        labels: ["Sem 1", "Sem 2", "Sem 3", "Sem 4"],
+        datasets: [
+          {
+            label: 'Livraison',
+            data: [180, 220, 260, 300],
+            backgroundColor: '#a89f91',
+            borderRadius: 6
+          },
+          {
+            label: 'Retrait',
+            data: [80, 95, 110, 125],
+            backgroundColor: '#8a8174',
+            borderRadius: 6
+          },
+          {
+            label: 'Sur place',
+            data: [40, 45, 50, 55],
+            backgroundColor: '#6c757d',
+            borderRadius: 6
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'top',
+          }
+        },
+        scales: {
+          x: {
+            grid: { display: false }
+          },
+          y: {
+            beginAtZero: true,
+            grid: {
+              color: "rgba(0,0,0,0.1)"
+            }
+          }
+        }
+      }
+    });
+  }
 });
 </script>
 
 <style scoped>
-.dashboard-commandes {
-  font-family: 'Poppins', sans-serif;
-  padding: 20px;
-  /* background: #f9fafb; */
+.commandes-view {
+  padding: 0;
+  background-color: #f8f9fa;
+  min-height: 100vh;
 }
 
-.card-gauge {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: auto; /* allow gauge to define its size */
-  padding: 8px 0;
-  margin: 10px 0;
+.view-header {
+  background: white;
+  padding: 2rem;
+  margin-bottom: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
+.view-header h2 {
+  margin: 0 0 0.5rem 0;
+  color: #2c3e50;
+  font-size: 1.8rem;
+}
 
-/* Cartes statistiques */
+.view-header p {
+  margin: 0;
+  color: #6c757d;
+  font-size: 1.1rem;
+}
+
+/* Section des statistiques */
+.stats-section {
+  margin-bottom: 2rem;
+}
+
+.stats-section h3 {
+  color: #2c3e50;
+  margin-bottom: 1rem;
+  font-size: 1.3rem;
+}
+
 .stats-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 20px;
-  margin-bottom: 30px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.1rem;
 }
-.card {
+
+.stat-card {
   background: white;
-  border-radius: 15px;
-  padding: 20px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-  text-align: center;
+  padding: 1.1rem;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
   display: flex;
-  flex-direction: column;
   align-items: center;
+  gap: 1rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
-.card-header {
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+}
+
+.stat-icon {
+  font-size: 2rem;
+  width: 60px;
+  height: 60px;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  background: #f8f9fa;
+  border-radius: 12px;
 }
-.card-value {
-  font-size: 26px;
+
+.stat-content h4 {
+  margin: 0 0 0.5rem 0;
+  color: #6c757d;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.stat-value {
+  font-size: 2rem;
   font-weight: bold;
-  margin-top: 10px;
-}
-.positive { color: #10B981; }
-.negative { color: #EF4444; }
-
-/* Graphiques */
-.chart-section {
-  background: white;
-  border-radius: 15px;
-  padding: 20px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.05);
-  margin-bottom: 30px;
-}
-.chart-section h2 {
-  margin-bottom: 20px;
-  font-size: 20px;
+  color: #2c3e50;
+  margin-bottom: 0.25rem;
 }
 
-.chart-pie .chart-pie-inner{ width: 75%; max-width: 420px; margin: 0 auto; height: 320px }
-.chart-pie .chart-pie-inner canvas{ width: 100% !important; height: 100% !important }
-.chart-pie .chart-pie-legend{ text-align:center }
-
-/* Plats */
-.promos-section h2 {
-  margin-bottom: 20px;
+.stat-trend {
+  font-size: 0.85rem;
+  font-weight: 600;
 }
-.plats-grid {
+
+.stat-trend.positive {
+  color: #10b981;
+}
+
+.stat-trend.negative {
+  color: #ef4444;
+}
+
+/* Grille des graphiques */
+.charts-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 15px;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
 }
-.plat-card {
-  background: white;
-  border-radius: 10px;
-  padding: 10px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.05);
-  transition: transform 0.3s;
-}
-.plat-card:hover {
-  transform: translateY(-5px);
-}
-.plat-card img {
-  width: 100%;
-  height: 150px;
-  object-fit: cover;
-  border-radius: 10px;
-}
-.plat-info { padding: 10px; }
-.prix { color: #4CAF50; font-weight: bold; }
-.note { font-size: 14px; color: #555; }
 
-/* Flux */
-.flux-section {
-  margin-top: 30px;
+.chart-card {
   background: white;
-  border-radius: 15px;
-  padding: 20px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
-.flux-section canvas{ width: 100% !important; height: 320px !important }
+
+.chart-header {
+  margin-bottom: 1.5rem;
+}
+
+.chart-header h3 {
+  margin: 0 0 0.25rem 0;
+  color: #2c3e50;
+  font-size: 1.2rem;
+}
+
+.chart-subtitle {
+  color: #6c757d;
+  font-size: 0.9rem;
+}
+
+.chart-container {
+  height: 300px;
+  position: relative;
+}
+
+/* Section des promotions */
+.promotions-section {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  margin-bottom: 2rem;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.section-header h3 {
+  margin: 0;
+  color: #2c3e50;
+  font-size: 1.3rem;
+}
+
+.section-subtitle {
+  color: #6c757d;
+  font-size: 0.9rem;
+}
+
+.promotions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.promo-card {
+  border: 1px solid #e9ecef;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.promo-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.promo-image {
+  position: relative;
+  height: 200px;
+  overflow: hidden;
+}
+
+.promo-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.promo-badge {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: #ef4444;
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.promo-content {
+  padding: 1.25rem;
+}
+
+.promo-content h4 {
+  margin: 0 0 0.5rem 0;
+  color: #2c3e50;
+}
+
+.promo-description {
+  color: #6c757d;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+  line-height: 1.4;
+}
+
+.price-section {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.original-price {
+  color: #6c757d;
+  text-decoration: line-through;
+  font-size: 0.9rem;
+}
+
+.promo-price {
+  color: #ef4444;
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
+.promo-dates {
+  color: #6c757d;
+  font-size: 0.8rem;
+}
+
+/* Section d'analyse */
+.analysis-section {
+  margin-bottom: 2rem;
+}
+
+.analysis-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 1.5rem;
+}
+
+.analysis-card {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.analysis-card.large {
+  grid-column: span 1;
+}
+
+.metric-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.metric-icon {
+  font-size: 2rem;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f8f9fa;
+  border-radius: 12px;
+}
+
+.metric-content h4 {
+  margin: 0 0 0.5rem 0;
+  color: #6c757d;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.metric-value {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #2c3e50;
+  margin-bottom: 0.25rem;
+}
+
+/* Actions rapides */
+.quick-actions {
+  margin-bottom: 2rem;
+}
+
+.quick-actions h3 {
+  color: #2c3e50;
+  margin-bottom: 1rem;
+  font-size: 1.3rem;
+}
+
+.actions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+}
+
+.action-card {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.action-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+  background: #f8f9fa;
+}
+
+.action-icon {
+  font-size: 2rem;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f8f9fa;
+  border-radius: 12px;
+}
+
+.action-content h4 {
+  margin: 0 0 0.5rem 0;
+  color: #2c3e50;
+  font-size: 1.1rem;
+}
+
+.action-content p {
+  margin: 0;
+  color: #6c757d;
+  font-size: 0.9rem;
+}
+
+/* États vides */
+.empty-state {
+  text-align: center;
+  padding: 3rem 2rem;
+  color: #6c757d;
+}
+
+.empty-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.empty-state h4 {
+  margin: 0 0 0.5rem 0;
+  color: #2c3e50;
+}
+
+.empty-state p {
+  margin: 0 0 1.5rem 0;
+}
+
+/* Boutons */
+.btn-primary {
+  background: #a89f91;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.btn-primary:hover {
+  background: #8a8174;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .charts-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .analysis-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .analysis-card.large {
+    grid-column: span 1;
+  }
+}
+
+@media (max-width: 768px) {
+  .stats-cards {
+    grid-template-columns: 1fr;
+  }
+  
+  .section-header {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+  }
+  
+  .actions-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .promotions-grid {
+    grid-template-columns: 1fr;
+  }
+}
 </style>

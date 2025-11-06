@@ -1,313 +1,9 @@
-<template>
-  <div class="admin-dashboard">
-    <!-- Header avec fond dégradé -->
-    <div class="dashboard-header">
-      <div class="container-fluid">
-        <div class="row align-items-center">
-          <div class="col">
-            <h1 class="dashboard-title">
-              <i class="bi bi-people-fill"></i>
-              Gestion des Utilisateurs
-            </h1>
-            <p class="dashboard-subtitle">Administrez et gérez tous les utilisateurs de votre plateforme</p>
-          </div>
-          <div class="col-auto">
-            <button class="btn btn-primary btn-add-user" @click="openAddUserModal">
-              <i class="bi bi-person-add"></i>
-              Nouvel Utilisateur
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Cartes de statistiques -->
-    <div class="container-fluid mt-4">
-      <div class="row stats-cards">
-        <div class="col-xl-3 col-md-6 mb-4">
-          <div class="stat-card total-users">
-            <div class="stat-icon">
-              <i class="bi bi-people"></i>
-            </div>
-            <div class="stat-content">
-              <div class="stat-number">{{ totalUsers }}</div>
-              <div class="stat-label">Utilisateurs Totaux</div>
-            </div>
-          </div>
-        </div>
-        <div class="col-xl-3 col-md-6 mb-4">
-          <div class="stat-card active-users">
-            <div class="stat-icon">
-              <i class="bi bi-person-check"></i>
-            </div>
-            <div class="stat-content">
-              <div class="stat-number">{{ activeUsers }}</div>
-              <div class="stat-label">Utilisateurs Actifs</div>
-            </div>
-          </div>
-        </div>
-        <div class="col-xl-3 col-md-6 mb-4">
-          <div class="stat-card inactive-users">
-            <div class="stat-icon">
-              <i class="bi bi-person-x"></i>
-            </div>
-            <div class="stat-content">
-              <div class="stat-number">{{ inactiveUsers }}</div>
-              <div class="stat-label">Utilisateurs Inactifs</div>
-            </div>
-          </div>
-        </div>
-        <div class="col-xl-3 col-md-6 mb-4">
-          <div class="stat-card admin-users">
-            <div class="stat-icon">
-              <i class="bi bi-shield-check"></i>
-            </div>
-            <div class="stat-content">
-              <div class="stat-number">{{ adminUsers }}</div>
-              <div class="stat-label">Administrateurs</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Barre de contrôle principale -->
-      <div class="control-panel card border-0 shadow-lg mb-4">
-        <div class="card-body">
-          <div class="row align-items-center">
-            <div class="col-md-4 mb-3 mb-md-0">
-              <div class="search-box">
-                <i class="bi bi-search search-icon"></i>
-                <input
-                  v-model="search"
-                  type="text"
-                  class="search-input"
-                  placeholder="Rechercher un utilisateur..."
-                />
-              </div>
-            </div>
-            
-            <div class="col-md-8">
-              <div class="d-flex flex-wrap gap-3 justify-content-md-end">
-                <!-- Filtres rapides -->
-                <div class="filter-group">
-                  <label class="filter-label">Rôle</label>
-                  <select v-model="filterRole" class="filter-select" @change="applyFilters">
-                    <option value="">Tous les rôles</option>
-                    <option value="client">Client</option>
-                    <option value="employe">Employé</option>
-                    <option value="gestionnaire">Gestionnaire</option>
-                    <option value="admin">Admin</option>
-                  </select>
-                </div>
-
-                <div class="filter-group">
-                  <label class="filter-label">Statut</label>
-                  <select v-model="filterStatus" class="filter-select" @change="applyFilters">
-                    <option value="">Tous les statuts</option>
-                    <option value="actif">Actif</option>
-                    <option value="inactif">Inactif</option>
-                  </select>
-                </div>
-
-                <div class="filter-group">
-                  <label class="filter-label">Trier par</label>
-                  <select v-model="sortOrder" class="filter-select" @change="applyFilters">
-                    <option value="">Ordre par défaut</option>
-                    <option value="az">Nom (A-Z)</option>
-                    <option value="za">Nom (Z-A)</option>
-                  </select>
-                </div>
-
-                <button class="btn btn-outline-secondary btn-reset" @click="resetFilters">
-                  <i class="bi bi-arrow-clockwise"></i>
-                  Réinitialiser
-                </button>
-
-                <button class="btn btn-success btn-export" @click="exportToCSV">
-                  <i class="bi bi-file-earmark-excel"></i>
-                  Exporter
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Tableau des utilisateurs -->
-      <div class="card border-0 shadow-lg">
-        <div class="card-header bg-transparent py-3">
-          <h5 class="card-title mb-0">
-            <i class="bi bi-list-ul me-2"></i>
-            Liste des Utilisateurs
-            <span class="badge bg-primary ms-2">{{ filteredUsers.length }}</span>
-          </h5>
-        </div>
-        
-        <div class="card-body p-0">
-          <div class="table-container">
-            <table class="user-table">
-              <thead>
-                <tr>
-                  <th class="text-center">#</th>
-                  <th>Utilisateur</th>
-                  <th>Contact</th>
-                  <th>Rôle</th>
-                  <th class="text-center">Statut</th>
-                  <th class="text-center">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr
-                  v-for="(user, index) in paginatedUsers"
-                  :key="user.id"
-                  class="user-row"
-                >
-                  <td class="text-center user-index">
-                    {{ (currentPage - 1) * perPage + index + 1 }}
-                  </td>
-                  
-                  <td>
-                    <div class="user-info">
-                      <div class="user-avatar">
-                        {{ getInitials(user.nom) }}
-                      </div>
-                      <div class="user-details">
-                        <div class="user-name">{{ user.nom }}</div>
-                        <div class="user-email">{{ user.email }}</div>
-                      </div>
-                    </div>
-                  </td>
-                  
-                  <td>
-                    <div class="contact-info">
-                      <div class="contact-item">
-                        <i class="bi bi-envelope me-2"></i>
-                        {{ user.email }}
-                      </div>
-                      <div class="contact-item">
-                        <i class="bi bi-telephone me-2"></i>
-                        {{ user.telephone }}
-                      </div>
-                    </div>
-                  </td>
-                  
-                  <td>
-                    <span :class="['role-badge', `role-${user.role}`]">
-                      <i :class="getRoleIcon(user.role)" class="me-1"></i>
-                      {{ formatRole(user.role) }}
-                    </span>
-                  </td>
-                  
-                  <td class="text-center">
-                    <div class="status-toggle">
-                      <button
-                        :class="['status-btn', user.statut === 'actif' ? 'active' : 'inactive']"
-                        @click="toggleStatus(user)"
-                      >
-                        <span class="status-dot"></span>
-                        {{ user.statut === 'actif' ? 'Actif' : 'Inactif' }}
-                      </button>
-                    </div>
-                  </td>
-                  
-                  <td class="text-center">
-                    <div class="action-buttons">
-                      <button
-                        class="btn-action btn-edit"
-                        @click="editUser(user)"
-                        title="Modifier"
-                      >
-                        <i class="bi bi-pencil-square"></i>
-                      </button>
-                      
-                      <button
-                        class="btn-action btn-delete"
-                        @click="deleteUser(user)"
-                        title="Supprimer"
-                      >
-                        <i class="bi bi-trash"></i>
-                      </button>
-                      
-                      <button
-                        class="btn-action btn-view"
-                        @click="viewUser(user)"
-                        title="Voir détails"
-                      >
-                        <i class="bi bi-eye"></i>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-                
-                <!-- État vide -->
-                <tr v-if="filteredUsers.length === 0">
-                  <td colspan="6" class="text-center py-5 empty-state">
-                    <div class="empty-icon">
-                      <i class="bi bi-people"></i>
-                    </div>
-                    <h5 class="mt-3">Aucun utilisateur trouvé</h5>
-                    <p class="text-muted">Aucun utilisateur ne correspond à vos critères de recherche.</p>
-                    <button class="btn btn-primary mt-2" @click="resetFilters">
-                      Réinitialiser les filtres
-                    </button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- Pagination -->
-        <div class="card-footer bg-transparent">
-          <div class="d-flex justify-content-between align-items-center">
-            <div class="pagination-info">
-              Affichage de <strong>{{ Math.min(filteredUsers.length, (currentPage - 1) * perPage + 1) }}</strong>
-              à <strong>{{ Math.min(currentPage * perPage, filteredUsers.length) }}</strong>
-              sur <strong>{{ filteredUsers.length }}</strong> utilisateurs
-            </div>
-            
-            <nav>
-              <ul class="pagination custom-pagination">
-                <li class="page-item" :class="{ disabled: currentPage === 1 }">
-                  <a class="page-link" href="#" @click.prevent="goPage(currentPage - 1)">
-                    <i class="bi bi-chevron-left"></i>
-                  </a>
-                </li>
-                
-                <li
-                  v-for="p in visiblePages"
-                  :key="p"
-                  class="page-item"
-                  :class="{ active: p === currentPage }"
-                >
-                  <a class="page-link" href="#" @click.prevent="goPage(p)">
-                    {{ p }}
-                  </a>
-                </li>
-                
-                <li class="page-item" :class="{ disabled: currentPage === totalPages }">
-                  <a class="page-link" href="#" @click.prevent="goPage(currentPage + 1)">
-                    <i class="bi bi-chevron-right"></i>
-                  </a>
-                </li>
-              </ul>
-            </nav>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Modal utilisateur -->
-    <UserForm v-model:modelValue="showUserModal" :user="editingUser" @save="onSaveUser" />
-  </div>
-</template>
-
 <script setup>
 import { ref, computed } from 'vue'
 import UserForm from '../components/UserForm.vue'
 import { addToast } from '../services/toastService'
 
-// Données utilisateurs
+// Données utilisateurs (remplacera par API plus tard)
 const users = ref([
   { id: 1, nom: 'Jean Dupont', email: 'jean@example.com', telephone: '+243 970 123 456', role: 'client', statut: 'actif' },
   { id: 2, nom: 'Aline Moke', email: 'aline@example.com', telephone: '+243 970 987 654', role: 'employe', statut: 'actif' },
@@ -402,7 +98,6 @@ const editUser = (user) => {
 }
 
 const viewUser = (user) => {
-  // Implémentez la vue détaillée ici
   alert(`Vue détaillée de ${user.nom}`)
 }
 
@@ -442,7 +137,7 @@ const resetFilters = () => {
 }
 
 const goPage = (p) => {
-  if (p < 1 || p > totalPages.value || p === '...') return
+  if (typeof p !== 'number' || p < 1 || p > totalPages.value) return
   currentPage.value = p
 }
 
@@ -486,102 +181,421 @@ const exportToCSV = () => {
 }
 </script>
 
+<template>
+  <div class="admin-dashboard">
+    <!-- Header avec fond dégradé -->
+    <div class="dashboard-header">
+      <div class="container-fluid">
+        <div class="row align-items-center">
+          <div class="col">
+            <h1 class="dashboard-title">
+              <i class="bi bi-people-fill"></i>
+              Gestion des Utilisateurs
+            </h1>
+            <p class="dashboard-subtitle">Administrez et gérez tous les utilisateurs de votre plateforme</p>
+          </div>
+          <div class="col-auto">
+            <button class="btn btn-primary btn-add-user" @click="openAddUserModal">
+              <i class="bi bi-person-add"></i>
+              Nouvel Utilisateur
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cartes de statistiques -->
+    <div class="container-fluid mt-4">
+      <div class="row stats-cards">
+        <div class="col-xl-3 col-md-6 mb-4">
+          <div class="stat-card total-users">
+            <div class="stat-icon">
+              <i class="bi bi-people"></i>
+            </div>
+            <div class="stat-content">
+              <div class="stat-number">{{ totalUsers }}</div>
+              <div class="stat-label">Utilisateurs Totaux</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+          <div class="stat-card active-users">
+            <div class="stat-icon">
+              <i class="bi bi-person-check"></i>
+            </div>
+            <div class="stat-content">
+              <div class="stat-number">{{ activeUsers }}</div>
+              <div class="stat-label">Utilisateurs Actifs</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+          <div class="stat-card inactive-users">
+            <div class="stat-icon">
+              <i class="bi bi-person-x"></i>
+            </div>
+            <div class="stat-content">
+              <div class="stat-number">{{ inactiveUsers }}</div>
+              <div class="stat-label">Utilisateurs Inactifs</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+          <div class="stat-card admin-users">
+            <div class="stat-icon">
+              <i class="bi bi-shield-check"></i>
+            </div>
+            <div class="stat-content">
+              <div class="stat-number">{{ adminUsers }}</div>
+              <div class="stat-label">Administrateurs</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Barre de contrôle principale -->
+      <div class="control-panel card border-0 shadow-sm mb-4">
+        <div class="card-body">
+          <div class="row align-items-center">
+            <div class="col-md-4 mb-3 mb-md-0">
+              <div class="search-box">
+                <i class="bi bi-search search-icon"></i>
+                <input
+                  v-model="search"
+                  type="text"
+                  class="search-input"
+                  placeholder="Rechercher un utilisateur..."
+                />
+              </div>
+            </div>
+            
+            <div class="col-md-8">
+              <div class="d-flex flex-wrap gap-3 justify-content-md-end">
+                <!-- Filtres rapides -->
+                <div class="filter-group">
+                  <label class="filter-label">Rôle</label>
+                  <select v-model="filterRole" class="filter-select" @change="applyFilters">
+                    <option value="">Tous les rôles</option>
+                    <option value="client">Client</option>
+                    <option value="employe">Employé</option>
+                    <option value="gestionnaire">Gestionnaire</option>
+                    <option value="admin">Admin</option>
+                  </select>
+                </div>
+
+                <div class="filter-group">
+                  <label class="filter-label">Statut</label>
+                  <select v-model="filterStatus" class="filter-select" @change="applyFilters">
+                    <option value="">Tous les statuts</option>
+                    <option value="actif">Actif</option>
+                    <option value="inactif">Inactif</option>
+                  </select>
+                </div>
+
+                <div class="filter-group">
+                  <label class="filter-label">Trier par</label>
+                  <select v-model="sortOrder" class="filter-select" @change="applyFilters">
+                    <option value="">Ordre par défaut</option>
+                    <option value="az">Nom (A-Z)</option>
+                    <option value="za">Nom (Z-A)</option>
+                  </select>
+                </div>
+
+                <button class="btn btn-outline-secondary btn-reset" @click="resetFilters">
+                  <i class="bi bi-arrow-clockwise"></i>
+                  Réinitialiser
+                </button>
+
+                <button class="btn btn-success btn-export" @click="exportToCSV">
+                  <i class="bi bi-file-earmark-excel"></i>
+                  Exporter
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tableau des utilisateurs -->
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-transparent py-3">
+          <h5 class="card-title mb-0">
+            <i class="bi bi-list-ul me-2"></i>
+            Liste des Utilisateurs
+            <span class="badge bg-primary ms-2">{{ filteredUsers.length }}</span>
+          </h5>
+        </div>
+        
+        <div class="card-body p-0">
+          <div class="table-container">
+            <table class="user-table">
+              <thead>
+                <tr>
+                  <th class="text-center">#</th>
+                  <th>Utilisateur</th>
+                  <th>Contact</th>
+                  <th>Rôle</th>
+                  <th class="text-center">Statut</th>
+                  <th class="text-center">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  v-for="(user, index) in paginatedUsers"
+                  :key="user.id"
+                  class="user-row"
+                >
+                  <td class="text-center user-index" data-label="#">
+                    {{ (currentPage - 1) * perPage + index + 1 }}
+                  </td>
+                  
+                  <td data-label="Utilisateur">
+                    <div class="user-info">
+                      <div class="user-avatar">
+                        {{ getInitials(user.nom) }}
+                      </div>
+                      <div class="user-details">
+                        <div class="user-name">{{ user.nom }}</div>
+                        <div class="user-email">{{ user.email }}</div>
+                      </div>
+                    </div>
+                  </td>
+                  
+                  <td data-label="Contact">
+                    <div class="contact-info">
+                      <div class="contact-item">
+                        <i class="bi bi-envelope me-2"></i>
+                        {{ user.email }}
+                      </div>
+                      <div class="contact-item">
+                        <i class="bi bi-telephone me-2"></i>
+                        {{ user.telephone }}
+                      </div>
+                    </div>
+                  </td>
+                  
+                  <td data-label="Rôle">
+                    <span :class="['role-badge', `role-${user.role}`]">
+                      <i :class="getRoleIcon(user.role)" class="me-1"></i>
+                      {{ formatRole(user.role) }}
+                    </span>
+                  </td>
+                  
+                  <td class="text-center" data-label="Statut">
+  <div class="status-toggle">
+    <button
+      :class="['status-btn', user.statut]"
+      @click="toggleStatus(user)"
+    >
+      <span class="status-dot"></span>
+      {{ user.statut === 'actif' ? 'Actif' : 'Inactif' }}
+    </button>
+  </div>
+</td>
+                  
+                  <td class="text-center" data-label="Actions">
+                    <div class="action-buttons">
+                      <button
+                        class="btn-action btn-edit"
+                        @click="editUser(user)"
+                        title="Modifier"
+                      >
+                        <i class="bi bi-pencil-square"></i>
+                      </button>
+                      
+                      <button
+                        class="btn-action btn-delete"
+                        @click="deleteUser(user)"
+                        title="Supprimer"
+                      >
+                        <i class="bi bi-trash"></i>
+                      </button>
+                      
+                      <button
+                        class="btn-action btn-view"
+                        @click="viewUser(user)"
+                        title="Voir détails"
+                      >
+                        <i class="bi bi-eye"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+                
+                <!-- État vide -->
+                <tr v-if="filteredUsers.length === 0">
+                  <td colspan="6" class="text-center py-5 empty-state">
+                    <div class="empty-icon">
+                      <i class="bi bi-people"></i>
+                    </div>
+                    <h5 class="mt-3">Aucun utilisateur trouvé</h5>
+                    <p class="text-muted">Aucun utilisateur ne correspond à vos critères de recherche.</p>
+                    <button class="btn btn-primary mt-2" @click="resetFilters">
+                      Réinitialiser les filtres
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Pagination -->
+        <div class="card-footer bg-transparent">
+          <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div class="pagination-info">
+              Affichage de <strong>{{ Math.min(filteredUsers.length, (currentPage - 1) * perPage + 1) }}</strong>
+              à <strong>{{ Math.min(currentPage * perPage, filteredUsers.length) }}</strong>
+              sur <strong>{{ filteredUsers.length }}</strong> utilisateurs
+            </div>
+            
+            <nav>
+              <ul class="pagination custom-pagination mb-0">
+                <li class="page-item" :class="{ disabled: currentPage === 1 }">
+                  <a class="page-link" href="#" @click.prevent="goPage(currentPage - 1)">
+                    <i class="bi bi-chevron-left"></i>
+                  </a>
+                </li>
+                
+                <li
+                  v-for="p in visiblePages"
+                  :key="p"
+                  class="page-item"
+                  :class="{ active: p === currentPage, disabled: p === '...' }"
+                >
+                  <span v-if="p === '...'" class="page-link">...</span>
+                  <a v-else class="page-link" href="#" @click.prevent="goPage(p)">
+                    {{ p }}
+                  </a>
+                </li>
+                
+                <li class="page-item" :class="{ disabled: currentPage === totalPages }">
+                  <a class="page-link" href="#" @click.prevent="goPage(currentPage + 1)">
+                    <i class="bi bi-chevron-right"></i>
+                  </a>
+                </li>
+              </ul>
+            </nav>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal utilisateur -->
+    <UserForm v-model:modelValue="showUserModal" :user="editingUser" @save="onSaveUser" />
+  </div>
+</template>
+
 <style scoped>
+:root {
+  --color-primary: #e0d6be;
+  --color-secondary: #a89f91;
+  --color-accent: #7a6e5e;
+  --color-light: #f5f3f0;
+  --color-dark: #3a352f;
+  --color-success: #4caf50;
+  --color-warning: #ff9800;
+  --color-danger: #f44336;
+}
+
 .admin-dashboard {
   min-height: 100vh;
-  /* background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); */
+  background-color: #ffffff;
 }
 
 .dashboard-header {
-  /* background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%); */
-  backdrop-filter: blur(10px);
+  background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+  color: white;
   padding: 2rem 0;
-  /* border-bottom: 1px solid rgba(255, 255, 255, 0.1); */
 }
 
 .dashboard-title {
-  color: white;
+  color: black;
   font-weight: 700;
-  font-size: 2.5rem;
+  font-size: 2.2rem;
   margin-bottom: 0.5rem;
 }
 
 .dashboard-subtitle {
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 1.1rem;
+  color: rgba(10, 10, 10, 0.9);
+  font-size: 1.05rem;
   margin-bottom: 0;
 }
 
 .btn-add-user {
-  background: linear-gradient(135deg, #00b4db, #0083b0);
+  background: #dcca9b;
   border: none;
   padding: 12px 24px;
   font-weight: 600;
-  border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(0, 180, 219, 0.3);
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(138, 129, 116, 0.3);
+  color: white;
   transition: all 0.3s ease;
 }
 
 .btn-add-user:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0, 180, 219, 0.4);
+  box-shadow: 0 6px 16px rgba(138, 129, 116, 0.4);
+  background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+  color:black;
 }
 
 /* Cartes de statistiques */
 .stats-cards {
-  margin-top: -2rem;
+  margin-top: -1.5rem;
 }
 
 .stat-card {
-  background: white;
-  border-radius: 16px;
-  padding: 1.5rem;
+  background: #e0d6be;
+  border-radius: 14px;
+  padding: 1.4rem;
   display: flex;
   align-items: center;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  border: 1px solid var(--color-secondary);
+  transition: all 0.25s ease;
 }
 
 .stat-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+  transform: translateY(-3px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
 }
 
 .stat-icon {
-  width: 60px;
-  height: 60px;
+  width: 56px;
+  height: 56px;
   border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.5rem;
+  font-size: 1.4rem;
   margin-right: 1rem;
   color: white;
 }
 
-.total-users .stat-icon { background: linear-gradient(135deg, #667eea, #764ba2); }
-.active-users .stat-icon { background: linear-gradient(135deg, #4ecdc4, #44a08d); }
-.inactive-users .stat-icon { background: linear-gradient(135deg, #ff6b6b, #ee5a52); }
-.admin-users .stat-icon { background: linear-gradient(135deg, #f093fb, #f5576c); }
+.total-users .stat-icon { background: var(--color-primary); }
+.active-users .stat-icon { background: var(--color-success); }
+/* .inactive-users .stat-icon { background: var(--color-danger); } */
+.admin-users .stat-icon { background: var(--color-accent); }
 
 .stat-number {
-  font-size: 2rem;
+  font-size: 1.8rem;
   font-weight: 700;
-  color: #2d3748;
+  color: var(--color-dark);
   line-height: 1;
 }
 
 .stat-label {
-  color: #718096;
+  color: #666;
   font-size: 0.9rem;
   font-weight: 500;
 }
 
 /* Barre de contrôle */
 .control-panel {
-  border-radius: 16px;
+  border-radius: 14px;
   overflow: hidden;
+  background: var(--color-secondary);
 }
 
 .search-box {
@@ -591,18 +605,18 @@ const exportToCSV = () => {
 .search-input {
   width: 100%;
   padding: 12px 16px 12px 45px;
-  border: 2px solid #e2e8f0;
-  border-radius: 12px;
+  border: 2px solid #eae7e2;
+  border-radius: 10px;
   font-size: 1rem;
   transition: all 0.3s ease;
-  background: #f8fafc;
+  background: var(--color-light);
 }
 
 .search-input:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: var(--color-primary);
   background: white;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  box-shadow: 0 0 0 3px rgba(138, 129, 116, 0.15);
 }
 
 .search-icon {
@@ -610,25 +624,25 @@ const exportToCSV = () => {
   left: 16px;
   top: 50%;
   transform: translateY(-50%);
-  color: #a0aec0;
+  color: #999;
 }
 
 .filter-group {
   display: flex;
   flex-direction: column;
-  min-width: 140px;
+  min-width: 130px;
 }
 
 .filter-label {
   font-size: 0.8rem;
   font-weight: 600;
-  color: #4a5568;
+  color: var(--color-dark);
   margin-bottom: 4px;
 }
 
 .filter-select {
   padding: 8px 12px;
-  border: 2px solid #e2e8f0;
+  border: 2px solid #eae7e2;
   border-radius: 8px;
   font-size: 0.9rem;
   background: white;
@@ -637,7 +651,7 @@ const exportToCSV = () => {
 
 .filter-select:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: var(--color-primary);
 }
 
 .btn-reset, .btn-export {
@@ -647,40 +661,57 @@ const exportToCSV = () => {
   transition: all 0.3s ease;
 }
 
+.btn-reset {
+  border-color: #ccc;
+  color: #555;
+  background: #dcca9b;
+}
+
 .btn-export {
-  background: linear-gradient(135deg, #48bb78, #38a169);
+  background: #e5d8bb;
   border: none;
+  color: rgb(16, 15, 15);
 }
 
 .btn-export:hover {
+  background: #43a047;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(72, 187, 120, 0.3);
+  box-shadow: 0 4px 10px rgba(76, 175, 80, 0.2);
 }
 
 /* Tableau */
+.table-container {
+  overflow-x: auto;
+}
+
 .user-table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.95rem;
 }
 
 .user-table th {
-  background: #f7fafc;
-  padding: 1rem;
+  background-color: var(--color-light);
+  color: var(--color-dark);
   font-weight: 600;
-  color: #4a5568;
-  border-bottom: 2px solid #e2e8f0;
+  padding: 14px 16px;
   text-align: left;
+  border-bottom: 2px solid #eae7e2;
 }
 
 .user-table td {
-  padding: 1rem;
-  border-bottom: 1px solid #edf2f7;
+  padding: 14px 16px;
+  border-bottom: 1px solid #f0eee9;
+  color: #444;
+}
+
+.user-row {
+  transition: background 0.2s ease;
 }
 
 .user-row:hover {
-  background: #f7fafc;
-  transform: scale(1.01);
-  transition: all 0.2s ease;
+  background-color: #faf9f7;
 }
 
 .user-info {
@@ -690,50 +721,51 @@ const exportToCSV = () => {
 }
 
 .user-avatar {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  background: var(--color-primary);
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
-  font-weight: 700;
-  font-size: 1rem;
+  font-weight: 600;
+  font-size: 0.95rem;
 }
 
 .user-name {
   font-weight: 600;
-  color: #2d3748;
+  color: var(--color-dark);
   margin-bottom: 2px;
 }
 
 .user-email {
-  color: #718096;
+  color: #777;
   font-size: 0.85rem;
 }
 
 .contact-item {
   display: flex;
   align-items: center;
-  color: #4a5568;
+  color: #555;
   font-size: 0.9rem;
-  margin-bottom: 4px;
+  margin-bottom: 3px;
 }
 
 .role-badge {
-  padding: 6px 12px;
+  padding: 5px 12px;
   border-radius: 20px;
-  font-size: 0.8rem;
+  font-size: 0.82rem;
   font-weight: 600;
   display: inline-flex;
   align-items: center;
+  gap: 5px;
 }
 
-.role-client { background: #e6fffa; color: #234e52; }
-.role-employe { background: #ebf8ff; color: #1a365d; }
-.role-gestionnaire { background: #faf5ff; color: #44337a; }
-.role-admin { background: #fff5f5; color: #742a2a; }
+.role-client { background: #e8f4f0; color: #1d6b53; }
+.role-employe { background: #eef7ff; color: #1a558c; }
+.role-gestionnaire { background: #f8f5f0; color: var(--color-primary); }
+.role-admin { background: #f9f0f0; color: #9a3b3b; }
 
 .status-btn {
   padding: 6px 12px;
@@ -744,28 +776,33 @@ const exportToCSV = () => {
   display: flex;
   align-items: center;
   gap: 6px;
-  transition: all 0.3s ease;
   cursor: pointer;
+  transition: all 0.3s ease;
 }
 
-.status-btn.active {
-  background: #c6f6d5;
-  color: #22543d;
+.status-btn.actif {
+  background: #e8f5e9;
+  color: #2e7d32;
+  border: 1px solid #c8e6c9;
 }
 
-.status-btn.inactive {
-  background: #fed7d7;
-  color: #742a2a;
+.status-btn.inactif {
+  background: #ffebee;
+  color: #c62828;
+  border: 1px solid #ffcdd2;
 }
+
+.status-btn.actif .status-dot { background: #4caf50; }
+.status-btn.inactif .status-dot { background: #f44336; }
 
 .status-dot {
-  width: 8px;
+   width: 8px;
   height: 8px;
   border-radius: 50%;
+  display: inline-block;
 }
 
-.status-btn.active .status-dot { background: #38a169; }
-.status-btn.inactive .status-dot { background: #e53e3e; }
+
 
 .action-buttons {
   display: flex;
@@ -774,112 +811,126 @@ const exportToCSV = () => {
 }
 
 .btn-action {
-  width: 36px;
-  height: 36px;
-  border: none;
+  width: 34px;
+  height: 34px;
+  border: 1px solid #eae7e2;
   border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s ease;
-  cursor: pointer;
+  
+  color: var(--color-primary);
+  transition: all 0.2s ease;
+}
+.btn-edit{background: #05e210;}
+.btn-delete{ background: #f90707;}
+.btn-view{background:#1976d2}
+
+.btn-action:hover {
+  background: var(--color-secondary);
+  color: black;
+  border-color: var(--color-primary);
+  transform: scale(1.08);
 }
 
-.btn-edit {
-  background: #ebf8ff;
-  color: #3182ce;
-}
-
-.btn-edit:hover {
-  background: #bee3f8;
-  transform: scale(1.1);
-}
-
-.btn-delete {
-  background: #fed7d7;
-  color: #e53e3e;
-}
-
-.btn-delete:hover {
-  background: #feb2b2;
-  transform: scale(1.1);
-}
-
-.btn-view {
-  background: #f0fff4;
-  color: #38a169;
-}
-
-.btn-view:hover {
-  background: #c6f6d5;
-  transform: scale(1.1);
-}
+.btn-edit:hover { background: #046e099d; color: #2e7d32; border-color: #2e7d32; }
+.btn-delete:hover { background: #f907078d; color: var(--color-danger); border-color: var(--color-danger); }
+.btn-view:hover { background: #05458e81; color: #1976d2; border-color: #1976d2; }
 
 /* État vide */
 .empty-state {
-  color: #718096;
+  color: #777;
 }
 
 .empty-icon {
   font-size: 4rem;
-  color: #cbd5e0;
+  color: #e0e0e0;
 }
 
 /* Pagination */
 .custom-pagination .page-link {
-  border: none;
-  color: #4a5568;
-  padding: 8px 16px;
+  border: 1px solid #eae7e2;
+  color: var(--color-dark);
+  padding: 8px 12px;
   margin: 0 2px;
-  border-radius: 8px;
-  transition: all 0.3s ease;
+  border-radius: 6px;
+  transition: all 0.2s ease;
 }
 
 .custom-pagination .page-item.active .page-link {
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: var(--color-primary);
   color: white;
+  border-color: var(--color-primary);
 }
 
-.custom-pagination .page-link:hover {
-  background: #e2e8f0;
-  color: #2d3748;
+.custom-pagination .page-link:hover:not(.disabled) {
+  background: var(--color-light);
+  color: var(--color-primary);
+}
+
+.custom-pagination .page-item.disabled {
+  pointer-events: none;
+  opacity: 0.6;
 }
 
 .pagination-info {
-  color: #718096;
+  color: #777;
   font-size: 0.9rem;
 }
 
-/* Responsive */
+/* Responsive mobile - tableau en cartes */
 @media (max-width: 768px) {
-  .dashboard-title {
-    font-size: 2rem;
+  .user-table,
+  .user-table thead,
+  .user-table tbody,
+  .user-table th,
+  .user-table td,
+  .user-table tr {
+    display: block;
   }
-  
-  .stats-cards {
-    margin-top: 0;
+
+  .user-table thead tr {
+    position: absolute;
+    top: -9999px;
+    left: -9999px;
   }
-  
-  .user-info {
-    flex-direction: column;
-    text-align: center;
-    gap: 8px;
+
+  .user-table tr {
+    border: 1px solid #eae7e2;
+    margin-bottom: 16px;
+    border-radius: 12px;
+    padding: 16px;
+    background: white;
   }
-  
-  .user-avatar {
-    width: 40px;
-    height: 40px;
-    font-size: 0.9rem;
+
+  .user-table td {
+    border: none;
+    position: relative;
+    padding-left: 50% !important;
+    text-align: right;
+    padding-top: 10px;
+    padding-bottom: 10px;
   }
-  
+
+  .user-table td:before {
+    content: attr(data-label) ": ";
+    position: absolute;
+    left: 16px;
+    width: 48%;
+    font-weight: 600;
+    color: var(--color-primary);
+    text-align: left;
+    font-size: 0.95rem;
+  }
+
   .action-buttons {
-    flex-direction: column;
-    gap: 4px;
+    justify-content: flex-start;
+    gap: 10px;
   }
-  
+
   .btn-action {
-    width: 32px;
-    height: 32px;
+    width: 38px;
+    height: 38px;
   }
 }
 </style>

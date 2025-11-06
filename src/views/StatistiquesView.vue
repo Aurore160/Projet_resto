@@ -1,20 +1,43 @@
 <template>
 	<div class="statistiques-view">
 		<div class="d-flex justify-content-between align-items-center mb-4">
-			<h2 class="page-title"></h2>
+			<h2 class="page-title">Tableau de Bord Statistiques</h2>
+			<button @click="exportToPDF" class="btn-export">
+				Exporter en PDF
+			</button>
 		</div>
 
-		<!-- KPI cards with larger gauges -->
+		<!-- KPI cards avec jauges améliorées -->
 		<div class="stats-cards">
 			<div class="kpi-card" v-for="card in kpis" :key="card.key">
 				<div class="kpi-header">
 					<h3>{{ card.titre }}</h3>
 				</div>
 				<div class="kpi-body">
-					<Gauge :value="card.valeur" :max="card.max || globalMax" :size="120" :label="card.label" :animateSequence="true" />
-					<div class="kpi-text">
-						<div class="kpi-number">{{ card.valeurDisplay }}</div>
-						<div class="kpi-sub">{{ card.sublabel }}</div>
+					<!-- Jauge centrée -->
+					<div class="gauge-container">
+						<Gauge 
+							:value="card.valeur" 
+							:max="card.max || globalMax" 
+							:size="120" 
+							:label="card.label" 
+							:animateSequence="true" 
+						/>
+					</div>
+					<!-- Chiffres descriptifs en colonne en dessous -->
+					<div class="kpi-info-column">
+						<div class="info-item">
+							<div class="info-label">Valeur actuelle</div>
+							<div class="info-value">{{ card.valeurDisplay }}</div>
+						</div>
+						<div class="info-item">
+							<div class="info-label">Objectif</div>
+							<div class="info-value">{{ card.maxDisplay }}</div>
+						</div>
+						<div class="info-item">
+							<div class="info-label">Progression</div>
+							<div class="info-value progress-value">{{ card.percentage }}%</div>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -59,7 +82,7 @@
 				</div>
 				<div class="insights-content">
 					<div class="insight-section">
-						<h4> Top Performants</h4>
+						<h4>Top Performants</h4>
 						<ul class="insight-list">
 							<li v-for="p in topPlats" :key="p.nom">
 								<span class="plat-name">{{ p.nom }}</span>
@@ -68,7 +91,7 @@
 						</ul>
 					</div>
 					<div class="insight-section">
-						<h4> Points d'Attention</h4>
+						<h4>Points d'Attention</h4>
 						<ul class="insight-list">
 							<li v-for="w in weakPoints" :key="w">{{ w }}</li>
 						</ul>
@@ -83,15 +106,53 @@
 import { onMounted, ref, computed } from 'vue'
 import Chart from 'chart.js/auto'
 import Gauge from '../components/Gauge.vue'
+import html2canvas from 'html2canvas'
+import jsPDF from 'jspdf'
 
 // KPI sample data tuned for statistical view
 const globalMax = 1000 // used as a base for gauges when applicable
 
 const kpis = ref([
-	{ key: 'revenue', titre: 'Chiffre d\'affaires (Mois)', valeur: 3200000, valeurDisplay: '3 200 000 FC', sublabel: 'CA ce mois', label: 'CA', max: 5000000 },
-	{ key: 'newClients', titre: 'Nouveaux clients', valeur: 128, valeurDisplay: '128', sublabel: 'nouveaux ce mois', label: 'Clients', max: 500 },
-	{ key: 'orders', titre: 'Commandes', valeur: 425, valeurDisplay: '425', sublabel: 'commandes ce mois', label: 'Cmds', max: 2000 },
-	{ key: 'conversion', titre: 'Taux de conversion', valeur: 37, valeurDisplay: '37%', sublabel: 'visites → commandes', label: 'Conv', max: 100 }
+	{ 
+		key: 'revenue', 
+		titre: 'Chiffre d\'affaires (Mois)', 
+		valeur: 3000000, 
+		valeurDisplay: '3,000,000 FC', 
+		max: 5000000,
+		maxDisplay: '5,000,000 FC',
+		label: 'CA',
+		percentage: computed(() => Math.round((3000000 / 5000000) * 100))
+	},
+	{ 
+		key: 'newClients', 
+		titre: 'Nouveaux clients', 
+		valeur: 128, 
+		valeurDisplay: '128', 
+		max: 500,
+		maxDisplay: '500',
+		label: 'Clients',
+		percentage: computed(() => Math.round((128 / 500) * 100))
+	},
+	{ 
+		key: 'orders', 
+		titre: 'Commandes', 
+		valeur: 425, 
+		valeurDisplay: '425', 
+		max: 2000,
+		maxDisplay: '2,000',
+		label: 'Cmds',
+		percentage: computed(() => Math.round((425 / 2000) * 100))
+	},
+	{ 
+		key: 'conversion', 
+		titre: 'Taux de conversion', 
+		valeur: 37, 
+		valeurDisplay: '37%', 
+		max: 100,
+		maxDisplay: '100%',
+		label: 'Conv',
+		percentage: 37
+	}
 ])
 
 const topPlats = ref([
@@ -107,8 +168,72 @@ const weakPoints = ref([
 	'Fidélisation clients <30 jours faible'
 ])
 
+// Export PDF
+const exportToPDF = async () => {
+	try {
+		const element = document.querySelector('.statistiques-view')
+		const canvas = await html2canvas(element, {
+			scale: 2,
+			useCORS: true,
+			allowTaint: true
+		})
+		
+		const imgData = canvas.toDataURL('image/png')
+		const pdf = new jsPDF('p', 'mm', 'a4')
+		const imgWidth = 210
+		const pageHeight = 295
+		const imgHeight = (canvas.height * imgWidth) / canvas.width
+		let heightLeft = imgHeight
+		
+		let position = 0
+		
+		pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight)
+		heightLeft -= pageHeight
+		
+		while (heightLeft >= 0) {
+			position = heightLeft - imgHeight
+			pdf.addPage()
+			pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight)
+			heightLeft -= pageHeight
+		}
+		
+		pdf.save(`statistiques-${new Date().toISOString().split('T')[0]}.pdf`)
+	} catch (error) {
+		console.error('Erreur export PDF:', error)
+		alert('Erreur lors de l\'export PDF')
+	}
+}
+
+// Backend integration example
+const fetchStatsData = async () => {
+	try {
+		// Exemple d'appel API - à adapter selon votre backend
+		/*
+		const response = await fetch('/api/statistics', {
+			headers: {
+				'Authorization': `Bearer ${yourToken}`
+			}
+		})
+		const data = await response.json()
+		
+		// Mettre à jour les KPI
+		kpis.value = data.kpis.map(kpi => ({
+			...kpi,
+			percentage: Math.round((kpi.valeur / kpi.max) * 100)
+		}))
+		
+		topPlats.value = data.topPlats
+		weakPoints.value = data.weakPoints
+		*/
+	} catch (error) {
+		console.error('Erreur chargement données:', error)
+	}
+}
+
 // charts
 onMounted(() => {
+	fetchStatsData()
+	
 	// pie CA par catégorie - version agrandie
 	const ctxPie = document.getElementById('caPie')
 	new Chart(ctxPie, {
@@ -241,7 +366,6 @@ onMounted(() => {
 <style scoped>
 .statistiques-view {
 	padding: 2rem;
-	/* background: #f8fafc; */
 	min-height: 100vh;
 }
 
@@ -252,12 +376,29 @@ onMounted(() => {
 	margin: 0;
 }
 
-/* KPI Cards agrandies */
+.btn-export {
+	background: #e5d8bb;
+	color: black;
+	border: none;
+	padding: 0.75rem 1.5rem;
+	border-radius: 8px;
+	font-weight: 600;
+	cursor: pointer;
+	transition: all 0.3s ease;
+}
+
+.btn-export:hover {
+	background: #dcca9b;
+	transform: translateY(-2px);
+	color:#ffffff;
+}
+
+/* KPI Cards améliorées */
 .stats-cards {
 	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-	gap: 1.5rem;
-	margin-bottom: 2.5rem;
+	grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+	gap: 1.1rem;
+	margin-bottom: 2.4rem;
 }
 
 .kpi-card {
@@ -267,6 +408,8 @@ onMounted(() => {
 	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 	border: 1px solid #e5e7eb;
 	transition: all 0.3s ease;
+	display: flex;
+	flex-direction: column;
 }
 
 .kpi-card:hover {
@@ -279,31 +422,58 @@ onMounted(() => {
 	font-weight: 600;
 	color: #374151;
 	margin: 0 0 1.2rem 0;
+	text-align: center;
 }
 
 .kpi-body {
 	display: flex;
+	flex-direction: column;
 	align-items: center;
 	gap: 1.2rem;
-}
-
-.kpi-text {
 	flex: 1;
 }
 
-.kpi-number {
-	font-weight: 700;
-	font-size: 1.8rem;
-	color: #1f2937;
-	line-height: 1.2;
-	margin-bottom: 0.5rem;
+.gauge-container {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	height: 140px;
 }
 
-.kpi-sub {
+/* Colonne d'informations sous la jauge */
+.kpi-info-column {
+	display: flex;
+	flex-direction: column;
+	width: 100%;
+	gap: 0.8rem;
+}
+
+.info-item {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 0.6rem 0;
+	border-bottom: 1px solid #f3f4f6;
+}
+
+.info-item:last-child {
+	border-bottom: none;
+}
+
+.info-label {
+	font-size: 0.9rem;
 	color: #6b7280;
-	font-size: 1rem;
-	line-height: 1.4;
 	font-weight: 500;
+}
+
+.info-value {
+	font-size: 1rem;
+	font-weight: 600;
+	color: #1f2937;
+}
+
+.progress-value {
+	color: #10B981;
 }
 
 /* Grille de graphiques agrandis */
@@ -344,7 +514,7 @@ onMounted(() => {
 
 .chart-container {
 	position: relative;
-	height: 320px; /* Hauteur agrandie de 30% */
+	height: 320px;
 	width: 100%;
 	flex: 1;
 }
@@ -367,9 +537,6 @@ onMounted(() => {
 	font-weight: 600;
 	color: #374151;
 	margin: 0 0 1rem 0;
-	display: flex;
-	align-items: center;
-	gap: 0.5rem;
 }
 
 .insight-list {
@@ -454,10 +621,6 @@ onMounted(() => {
 	.chart-header h3 {
 		font-size: 1.2rem;
 	}
-	
-	.kpi-number {
-		font-size: 1.6rem;
-	}
 }
 
 @media (max-width: 480px) {
@@ -469,14 +632,24 @@ onMounted(() => {
 		font-size: 1.5rem;
 	}
 	
-	.kpi-body {
-		flex-direction: column;
-		text-align: center;
-		gap: 1rem;
-	}
-	
 	.chart-container {
 		height: 250px;
+	}
+	
+	.kpi-info-column {
+		gap: 0.6rem;
+	}
+	
+	.info-item {
+		padding: 0.5rem 0;
+	}
+	
+	.info-label {
+		font-size: 0.85rem;
+	}
+	
+	.info-value {
+		font-size: 0.9rem;
 	}
 }
 
