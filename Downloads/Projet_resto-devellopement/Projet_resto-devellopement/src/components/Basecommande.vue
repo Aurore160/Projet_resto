@@ -327,7 +327,7 @@ const getStatusText = (status) => {
 <style scoped>
 .orders-management {
   min-height: 100vh;
-  background: var(--primary-color);
+  background: var(--success-color);
   position: relative;
 }
 
@@ -343,7 +343,7 @@ const getStatusText = (status) => {
 
 /* Section des filtres */
 .filters-section {
-  background: var(--primary-color);
+  background: var(--success-color);
   padding: 1.5rem;
   border-radius: 12px;
   box-shadow: 0 2px 10px rgba(0,0,0,0.1);
@@ -362,7 +362,7 @@ const getStatusText = (status) => {
   font-size: 0.9rem;
 }
 .form-select{
-  background-color: var(--accent-color);
+  background-color: var(--filtre-color);
 }
 
 /* Filtres de statut */
@@ -383,8 +383,8 @@ const getStatusText = (status) => {
 }
 
 .status-checkbox:hover {
-  background: var(--secondary-color);
-  color: var(--primary-color) ;
+  background: var(--primary-color);
+  color: var(--secondary-color) ;
 }
 
 .status-checkbox input {
@@ -404,8 +404,9 @@ const getStatusText = (status) => {
 }
 
 .status-checkbox input:checked ~ .checkmark {
-  background: var(--accent-color);
+  background: var(--primary-color);
   border-color: var(--accent-color);
+  color: var(--secondary-color);
 }
 
 .checkmark:after {
@@ -437,11 +438,11 @@ const getStatusText = (status) => {
 }
 
 .status-badge.en-cours {
-  background: var(--success-color);
+  background: green;
 }
 
 .status-badge.livre {
-  background: var(--secondary-color);
+  background: red;
 }
 
 /* Champs de recherche */
@@ -451,8 +452,8 @@ const getStatusText = (status) => {
 
 .search-input {
   padding-left: 2.5rem;
-  background-color: var(--accent-color);
-  color: var(--fin-color);
+  background-color: var(--filtre-color);
+  color: var(--secondary-color);
 }
 
 .search-icon {
@@ -460,12 +461,12 @@ const getStatusText = (status) => {
   left: 1rem;
   top: 50%;
   transform: translateY(-50%);
-  color: #7f8c8d;
+  color: var(--secondary-color);
 }
 
 /* Tableau */
 .orders-table-section {
-  background: var(--secondary-color);
+  background: var(--primary-color);
   border-radius: 12px;
   box-shadow: 0 2px 10px rgba(0,0,0,0.1);
   overflow: hidden;
@@ -477,10 +478,10 @@ const getStatusText = (status) => {
 }
 
 .orders-table th {
-  background: var(--secondary-color);
+  background: var(--filtre-color);
   padding: 1rem;
   font-weight: 600;
-  color: var(--primary-color);
+  color: var(--secondary-color);
   border-bottom: 2px solid var(--accent-color-);
   text-align: left;
 }
@@ -492,7 +493,8 @@ const getStatusText = (status) => {
 }
 
 .order-row:hover {
-  background: #f8f9fa;
+  background: var(--success-color);
+  color: var(--secondary-color);
 }
 
 /* Colonnes spécifiques */
@@ -544,12 +546,12 @@ const getStatusText = (status) => {
 
 .dish-name {
   font-weight: 600;
-  color: #2c3e50;
+  color: var(--secondary-color);
 }
 
 .dish-description {
   font-size: 0.8rem;
-  color: #7f8c8d;
+  color: var(--fin-color);
   margin-top: 0.25rem;
 }
 
@@ -591,8 +593,8 @@ const getStatusText = (status) => {
 }
 
 .status-en_cours {
-  background: #fff3cd;
-  color: #856404;
+  background: green;
+  color: var(--secondary-color);
 }
 
 .status-en_cours:before {
@@ -600,49 +602,14 @@ const getStatusText = (status) => {
 }
 
 .status-livre {
-  background: #d1edff;
-  color: #0c5460;
+  background: red;
+  color: var(--secondary-color);
 }
 
 .status-livre:before {
   background: #27ae60;
 }
 
-.status-annule {
-  background: #f8d7da;
-  color: #721c24;
-}
-
-.status-annule:before {
-  background: #e74c3c;
-}
-
-/* Sélecteur de statut (modification) */
-.status-select {
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 20px;
-  font-size: 0.8rem;
-  font-weight: 500;
-  cursor: pointer;
-  outline: none;
-  width: 100%;
-}
-
-.status-select.status-en_cours {
-  background: #fff3cd;
-  color: #856404;
-}
-
-.status-select.status-livre {
-  background: #d1edff;
-  color: #0c5460;
-}
-
-.status-select.status-annule {
-  background: #f8d7da;
-  color: #721c24;
-}
 
 /* Prix et montants */
 .price, .quantity, .amount {
@@ -650,8 +617,9 @@ const getStatusText = (status) => {
 }
 
 .amount {
-  color: var(--accent-color);
+  color: var(--secondary-color);
   font-size: 1.1rem;
+  font-weight: bold;
 }
 
 /* Aucune commande */
@@ -669,7 +637,7 @@ const getStatusText = (status) => {
 
 .no-orders h3 {
   margin-bottom: 0.5rem;
-  color: #2c3e50;
+  color: var(--secondary-color);
 }
 
 /* Résumé */
@@ -677,7 +645,7 @@ const getStatusText = (status) => {
   display: flex;
   justify-content: space-between;
   padding: 1.5rem;
-  background: #f8f9fa;
+  background: var(--filtre-color);
   border-top: 1px solid #e9ecef;
   flex-wrap: wrap;
   gap: 1rem;
@@ -691,12 +659,12 @@ const getStatusText = (status) => {
 
 .summary-label {
   font-weight: 500;
-  color: #7f8c8d;
+  color: var(--fin-color);
 }
 
 .summary-value {
   font-weight: 600;
-  color: #2c3e50;
+  color: var(--secondary-color);
 }
 
 /* Responsive */

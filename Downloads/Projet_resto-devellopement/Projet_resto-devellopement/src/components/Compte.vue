@@ -269,14 +269,14 @@ onMounted(() => {
 <style scoped>
 .employee-accounts {
   max-width: 100%;
-  background: var(--accent-color);
+  background: var(--success-color);
   border-radius: 8px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   overflow: hidden;
 }
 
 .header {
-  background: var(--accent-color);
+  background: var(--filtre-color);
   color: var(--secondary-color);
   padding: 20px 30px;
 }
@@ -294,7 +294,7 @@ onMounted(() => {
 
 .creation-section {
   border-bottom: 1px solid var(--primary-color);
-  background-color: var(--primary-color);
+  background-color: var(--success-color);
 }
 
 .creation-section h3,
@@ -335,8 +335,8 @@ onMounted(() => {
   border-radius: 4px;
   font-size: 14px;
   transition: border-color 0.3s;
-  background-color: var(--secondary-color);
-  color: var(--success-color);
+  background-color: var(--filtre-color);
+  color: var(--fin-color);
 }
 
 .form-group input:focus,
@@ -385,7 +385,7 @@ onMounted(() => {
 .empty-state {
   text-align: center;
   padding: 40px 20px;
-  color: #6c757d;
+  color: var(--fin-color);
   font-style: italic;
   background-color: var(--secondary-color);
   border-radius: 4px;
@@ -398,10 +398,14 @@ onMounted(() => {
 }
 
 .accounts-table {
-  color: var(--success-color);
+  color: var(--secondary-color);
   width: 100%;
   border-collapse: collapse;
-  background: var(--secondary-color);
+  background: var(--success-color);
+}
+.accounts-table:hover{
+ background-color: var(--primary-color);
+ color: var(--secondary-color);
 }
 
 .accounts-table th {
@@ -432,7 +436,7 @@ onMounted(() => {
 .password-field {
   font-family: 'Courier New', monospace;
   font-weight: 600;
-  color: var(--success-color);
+  color: var(--secondary-color);
 }
 
 .role-badge {
@@ -447,11 +451,6 @@ onMounted(() => {
   background-color: var(--primary-color);
   color: var(--secondary-color);
 }
-.role-gerant {
-  background-color: var(--accent-color);
-  color: var(--primary-color);
-}
-
 .action-buttons {
   display: flex;
   gap: 5px;
@@ -467,21 +466,21 @@ onMounted(() => {
 }
 
 .btn-edit {
-  background-color: #f39c12;
+  background-color: var(--success-color);
   color: white;
 }
 
 .btn-edit:hover {
-  background-color: #e67e22;
+  background-color: var(--secondary-color);
 }
 
 .btn-delete {
-  background-color: #e74c3c;
+  background-color: var(--success-color);
   color: white;
 }
 
 .btn-delete:hover {
-  background-color: #c0392b;
+  background-color: var(--secondary-color);
 }
 
 /* Responsive */

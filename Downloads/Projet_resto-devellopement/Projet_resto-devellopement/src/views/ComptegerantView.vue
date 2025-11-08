@@ -5,5 +5,12 @@
 </template>
 
 <script setup>
-import Compte from '../components/Creation.vue';
+import Compte from '../components/Compte.vue';
 </script>
+
+<style scoped>
+.compte-gerant-view {
+  padding: 2rem;
+  min-height: 100vh;
+}
+</style>

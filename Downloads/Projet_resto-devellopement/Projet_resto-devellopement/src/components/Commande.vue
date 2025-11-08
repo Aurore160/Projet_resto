@@ -6,10 +6,10 @@
 </template>
 
 <script setup>
-
+import Basecommande from './Basecommande.vue';
 
 // Props
-defineProps({
+const props = defineProps({
   orders: {
     type: Array,
     default: () => []

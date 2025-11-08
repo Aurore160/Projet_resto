@@ -9,11 +9,12 @@
 import Commandemodif from '../components/Commandemodif.vue'
 
 const commandesData = [
-  // Vos données de commandes...
+  // Vos données de commandes existantes...
 ]
 
 const handleStatusUpdate = (event) => {
-  // Mettre à jour dans votre store ou API
   console.log('Mise à jour du statut:', event)
 }
 </script>
+
+<!-- SUPPRIMER les styles s'il y en a, car gérés par le parent -->

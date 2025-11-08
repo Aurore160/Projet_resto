@@ -1,8 +1,10 @@
 <template>
   <nav class="navbar fixed-top">
-    <!-- Partie gauche -->
+    <!-- Partie gauche avec Logo cliquable -->
     <div class="nav-left">
-      <Logo/>
+      <router-link to="/employe">
+        <Logo />
+      </router-link>
     </div>
     
     <!-- Partie centrale -->
@@ -10,12 +12,20 @@
       <Menunavemploye/>
     </div>
     
-    <!-- Partie droite -->
+    <!-- Partie droite avec Profil cliquable -->
     <div class="nav-right">
-      <Profil/>
+      <router-link to="/employe/profil">
+        <Profil/>
+      </router-link>
     </div>
   </nav>
 </template>
+
+<script setup>
+import Logo from './Logo.vue';
+import Menunavemploye from './Menunavemploye.vue';
+import Profil from './Profil.vue';
+</script>
 
 <style scoped>
 .navbar {
@@ -32,6 +42,10 @@
   flex-shrink: 0;
 }
 
+.nav-left a {
+  text-decoration: none;
+}
+
 .nav-center {
   display: flex;
   align-items: center;
@@ -45,17 +59,7 @@
   margin-left: auto;
 }
 
-.nav-link {
-  color: white;
+.nav-right a {
   text-decoration: none;
-  padding: 8px 16px;
-  border-radius: 5px;
-  transition: all 0.3s ease;
-  white-space: nowrap;
-}
-
-.nav-link:hover {
-  background: rgba(255, 255, 255, 0.1);
-  transform: translateY(-1px);
 }
 </style>

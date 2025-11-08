@@ -1,36 +1,12 @@
 <template>
-  <!-- <Evenements/> -->
-   <HomeView/>
-   <Menu/>
-   
- 
-   
+  <div id="app">
+    <router-view/>
+  </div>
 </template>
 
-
 <script setup>
-
-import HomeView from './Views/HomeView.vue';
-import Menu from './components/Menu.vue';
-
-
-
-// import Navbar from './components/Navbar.vue';
-// import Menuachat from './components/Menuachat.vue';
-// import Footer from './components/Footer.vue';
-
-
-
-
-
-
-
-
-
-
-
+// Suppression de l'import inutile de 't'
 </script>
-
 
 <style>
 /* Styles globaux */
@@ -39,5 +15,9 @@ body {
   padding: 0;
   font-family: 'Arial', sans-serif;
   background-color: var(--primary-color);
+}
+
+#app {
+  min-height: 100vh;
 }
 </style>

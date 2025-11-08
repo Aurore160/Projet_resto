@@ -1,6 +1,5 @@
-<template>
-  
-  <div class="profile-fullscreen">
+<template>  
+  <div class="profile-view">
     <div class="profile-container">
       <!-- En-tête compact -->
       <div class="profile-header">
@@ -196,15 +195,15 @@
                       </span>
                       <span>8+ caractères</span>
                     </div>
-                    <div class="validation-item" :class="{ valid: /[A-Z]/.test(passwordForm.newPassword) }">
+                    <div class="validation-item" :class="{ valid: hasUpperCase }">
                       <span class="validation-icon">
-                        {{ /[A-Z]/.test(passwordForm.newPassword) ? '✓' : '○' }}
+                        {{ hasUpperCase ? '✓' : '○' }}
                       </span>
                       <span>Majuscule</span>
                     </div>
-                    <div class="validation-item" :class="{ valid: /[0-9]/.test(passwordForm.newPassword) }">
+                    <div class="validation-item" :class="{ valid: hasNumber }">
                       <span class="validation-icon">
-                        {{ /[0-9]/.test(passwordForm.newPassword) ? '✓' : '○' }}
+                        {{ hasNumber ? '✓' : '○' }}
                       </span>
                       <span>Chiffre</span>
                     </div>
@@ -366,9 +365,57 @@ const passwordsMatch = computed(() => {
   return passwordForm.newPassword === passwordForm.confirmPassword && passwordForm.newPassword !== ''
 })
 
+// CORRECTION : Remplacer les expressions régulières complexes
+const hasUpperCase = computed(() => {
+  if (!passwordForm.newPassword) return false
+  for (let i = 0; i < passwordForm.newPassword.length; i++) {
+    if (passwordForm.newPassword[i] >= 'A' && passwordForm.newPassword[i] <= 'Z') {
+      return true
+    }
+  }
+  return false
+})
+
+const hasNumber = computed(() => {
+  if (!passwordForm.newPassword) return false
+  for (let i = 0; i < passwordForm.newPassword.length; i++) {
+    if (passwordForm.newPassword[i] >= '0' && passwordForm.newPassword[i] <= '9') {
+      return true
+    }
+  }
+  return false
+})
+
+const hasSpecialChar = computed(() => {
+  if (!passwordForm.newPassword) return false
+  const specialChars = '@$!%*?&'
+  for (let i = 0; i < passwordForm.newPassword.length; i++) {
+    if (specialChars.includes(passwordForm.newPassword[i])) {
+      return true
+    }
+  }
+  return false
+})
+
+const hasLowerCase = computed(() => {
+  if (!passwordForm.newPassword) return false
+  for (let i = 0; i < passwordForm.newPassword.length; i++) {
+    if (passwordForm.newPassword[i] >= 'a' && passwordForm.newPassword[i] <= 'z') {
+      return true
+    }
+  }
+  return false
+})
+
 const isPasswordStrong = computed(() => {
-  const strongRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/
-  return strongRegex.test(passwordForm.newPassword)
+  const password = passwordForm.newPassword
+  if (!password) return false
+  
+  return password.length >= 8 && 
+         hasLowerCase.value && 
+         hasUpperCase.value && 
+         hasNumber.value && 
+         hasSpecialChar.value
 })
 
 const canUpdatePassword = computed(() => {
@@ -385,10 +432,10 @@ const passwordStrength = computed(() => {
   
   let strength = 0
   if (password.length >= 8) strength += 1
-  if (/[a-z]/.test(password)) strength += 1
-  if (/[A-Z]/.test(password)) strength += 1
-  if (/[0-9]/.test(password)) strength += 1
-  if (/[@$!%*?&]/.test(password)) strength += 1
+  if (hasLowerCase.value) strength += 1
+  if (hasUpperCase.value) strength += 1
+  if (hasNumber.value) strength += 1
+  if (hasSpecialChar.value) strength += 1
   
   return strength
 })
@@ -504,25 +551,22 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* Variables et reset */
-
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-/* Layout principal avec espace pour la navbar */
-.profile-fullscreen {
+.profile-view {
+  padding: 2rem;
   min-height: 100vh;
   background: var(--primary-color);
-  padding: 4rem;
-  padding-top: 5rem; /* Espace pour la navbar */
 }
 
 .profile-container {
   max-width: 1200px;
   margin: 0 auto;
+}
+
+/* Variables et reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 /* En-tête compact */
@@ -566,7 +610,7 @@ onMounted(() => {
 .card-header {
   padding: 1rem 1.25rem;
   border-bottom: var(--accent-color);
-  background:var(--accent-color);
+  background: var(--accent-color);
 }
 
 .card-header h2 {
@@ -644,6 +688,7 @@ onMounted(() => {
   font-size: 0.9rem;
   margin-bottom: 0.75rem;
 }
+
 /* Informations personnelles */
 .personal-info-section {
   margin-bottom: 1.5rem;
@@ -910,7 +955,6 @@ onMounted(() => {
   gap: 0.75rem;
 }
 
-
 /* Colonne de droite */
 .right-column {
   display: flex;
@@ -980,7 +1024,7 @@ onMounted(() => {
 /* Notification */
 .notification {
   position: fixed;
-  top: 6rem; /* Sous la navbar */
+  top: 6rem;
   right: 1rem;
   z-index: 1000;
   animation: slideInRight 0.3s ease-out;
@@ -1048,9 +1092,8 @@ onMounted(() => {
 }
 
 @media (max-width: 768px) {
-  .profile-fullscreen {
+  .profile-view {
     padding: 0.75rem;
-    padding-top: 4.5rem;
   }
   
   .info-group {
@@ -1062,10 +1105,6 @@ onMounted(() => {
     flex-direction: column;
     text-align: center;
     gap: 1rem;
-  }
-  
-  .member-info {
-    justify-content: center;
   }
   
   .password-validation {
@@ -1090,9 +1129,8 @@ onMounted(() => {
 }
 
 @media (max-width: 480px) {
-  .profile-fullscreen {
+  .profile-view {
     padding: 0.5rem;
-    padding-top: 4rem;
   }
   
   .header-content h1 {

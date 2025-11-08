@@ -1,40 +1,48 @@
 <template>
-    <div class="col-md-12 text-center ">
-      <button class="btn text-dark me-4 px-4 rounded-pill fw-semibold">
-        Accueil
-      </button>
-      <router-link to="/contact">
+  <div class="col-md-12 text-center">
+    <!-- Bouton Accueil supprimé -->
+    
+    <router-link to="/gerant/commandes">
       <button class="btn text-dark me-1 px-4 rounded-pill fw-semibold">
         Commandes
-      </button></router-link>
+      </button>
+    </router-link>
+    
+    <router-link to="/gerant/comptes">
       <button class="btn text-dark me-1 px-4 rounded-pill fw-semibold">
         Comptes
       </button>
+    </router-link>  
+    
+    <router-link to="/gerant/reclamations">
       <button class="btn text-dark me-1 px-4 rounded-pill fw-semibold">
-        Evenements
-      </button>
+        Réclamations
+      </button>  
+    </router-link>
+
+    <router-link to="/gerant/statistiques">
       <button class="btn text-dark me-1 px-4 rounded-pill fw-semibold">
         Statistiques
-      </button>
-    </div>
+      </button>  
+    </router-link>
+  </div>
 </template>
 
 <script setup>
-import { useRouter } from 'vue-router'
-const router = useRouter()
+// Le script reste le même
 </script>
 
-
-
 <style scoped>
-.btn{
+.btn {
   background-color: var(--primary-color);
-  /* box-shadow: 0 0px 6px rgba(0, 0, 0, 0.1); */
   border: var(--primary-color);
 }
-.btn:hover{
+
+.btn:hover {
   background-color: var(--accent-color);
 }
 
+a {
+  text-decoration: none;
+}
 </style>
-
