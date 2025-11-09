@@ -3,23 +3,14 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Controllers\Traits\HandlesApiResponses;
 use App\Http\Requests\AddToFavoritesRequest;
 use App\Models\Favori;
 use App\Models\MenuItem;
 use Illuminate\Http\Request;
-use Psr\Log\LoggerInterface;
+use Illuminate\Support\Facades\DB;
 
 class FavoriteController extends Controller
 {
-    use HandlesApiResponses;
-    
-    protected $logger;
-    
-    public function __construct(LoggerInterface $logger)
-    {
-        $this->logger = $logger;
-    }
     /**
      * Lister tous les favoris de l'utilisateur connecté
      * 
@@ -30,11 +21,6 @@ class FavoriteController extends Controller
         try {
             $utilisateur = $request->user();
             
-            // Vérifier que l'utilisateur est bien authentifié
-            if (!$utilisateur) {
-                return $this->errorResponse('Non authentifié', 401);
-            }
-            
             // Récupérer tous les favoris de l'utilisateur avec les informations des plats
             $favoris = Favori::where('id_utilisateur', $utilisateur->id_utilisateur)
                 ->with(['menuItem.categorie']) // Charger le plat et sa catégorie
@@ -43,24 +29,21 @@ class FavoriteController extends Controller
             
             // Formater la réponse
             $favorisFormates = $favoris->map(function ($favori) {
-                // Vérifier si menuItem existe (au cas où le plat aurait été supprimé)
-                $menuItem = $favori->menuItem;
-                
                 return [
                     'id_favori' => $favori->id_favori,
-                    'menu_item' => $menuItem ? [
-                        'id_menuitem' => $menuItem->id_menuitem,
-                        'nom' => $menuItem->nom,
-                        'description' => $menuItem->description,
-                        'prix' => $menuItem->prix,
-                        'photo_url' => $menuItem->photo_url,
-                        'statut_disponibilite' => $menuItem->statut_disponibilite,
-                        'categorie' => $menuItem->categorie ? [
-                            'id_categorie' => $menuItem->categorie->id_categorie,
-                            'nom' => $menuItem->categorie->nom,
-                        ] : null,
-                    ] : null,
-                    'date_ajout' => $favori->date_ajout ? $favori->date_ajout->format('Y-m-d H:i:s') : null,
+                    'menu_item' => [
+                        'id_menuitem' => $favori->menuItem->id_menuitem ?? null,
+                        'nom' => $favori->menuItem->nom ?? 'Plat supprimé',
+                        'description' => $favori->menuItem->description ?? null,
+                        'prix' => $favori->menuItem->prix ?? null,
+                        'photo_url' => $favori->menuItem->photo_url ?? null,
+                        'statut_disponibilite' => $favori->menuItem->statut_disponibilite ?? false,
+                        'categorie' => [
+                            'id_categorie' => $favori->menuItem->categorie->id_categorie ?? null,
+                            'nom' => $favori->menuItem->categorie->nom ?? null,
+                        ],
+                    ],
+                    'date_ajout' => $favori->date_ajout->format('Y-m-d H:i:s'),
                 ];
             });
             
@@ -73,11 +56,17 @@ class FavoriteController extends Controller
             ], 200);
             
         } catch (\Exception $e) {
-            return $this->handleException(
-                $e,
-                'Erreur lors de la récupération des favoris',
-                ['user_id' => $utilisateur->id_utilisateur ?? null]
-            );
+            \Log::error('Erreur lors de la récupération des favoris', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la récupération des favoris',
+                'error' => $e->getMessage(),
+            ], 500);
         }
     }
 
@@ -98,7 +87,10 @@ class FavoriteController extends Controller
                                ->first();
 
             if (!$menuItem) {
-                return $this->notFoundResponse('Plat');
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Ce plat n\'est pas disponible',
+                ], 404);
             }
 
             // Vérifier si le favori existe déjà
@@ -107,7 +99,10 @@ class FavoriteController extends Controller
                                    ->first();
 
             if ($favoriExistant) {
-                return $this->errorResponse('Ce plat est déjà dans vos favoris', 400);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Ce plat est déjà dans vos favoris',
+                ], 400);
             }
 
             // Créer le favori
@@ -119,35 +114,38 @@ class FavoriteController extends Controller
             // Charger les relations pour la réponse
             $favori->load(['menuItem.categorie']);
 
-            // Formater les données pour la réponse
-            $menuItem = $favori->menuItem;
-            $favoriData = [
-                'id_favori' => $favori->id_favori,
-                'menu_item' => $menuItem ? [
-                    'id_menuitem' => $menuItem->id_menuitem,
-                    'nom' => $menuItem->nom,
-                    'description' => $menuItem->description,
-                    'prix' => $menuItem->prix,
-                    'photo_url' => $menuItem->photo_url,
-                    'categorie' => $menuItem->categorie ? [
-                        'id_categorie' => $menuItem->categorie->id_categorie,
-                        'nom' => $menuItem->categorie->nom,
-                    ] : null,
-                ] : null,
-                'date_ajout' => $favori->date_ajout ? $favori->date_ajout->format('Y-m-d H:i:s') : null,
-            ];
-
-            return $this->createdResponse($favoriData, 'Plat ajouté aux favoris avec succès');
+            return response()->json([
+                'success' => true,
+                'message' => 'Plat ajouté aux favoris avec succès',
+                'data' => [
+                    'id_favori' => $favori->id_favori,
+                    'menu_item' => [
+                        'id_menuitem' => $favori->menuItem->id_menuitem,
+                        'nom' => $favori->menuItem->nom,
+                        'description' => $favori->menuItem->description,
+                        'prix' => $favori->menuItem->prix,
+                        'photo_url' => $favori->menuItem->photo_url,
+                        'categorie' => [
+                            'id_categorie' => $favori->menuItem->categorie->id_categorie,
+                            'nom' => $favori->menuItem->categorie->nom,
+                        ],
+                    ],
+                    'date_ajout' => $favori->date_ajout->format('Y-m-d H:i:s'),
+                ],
+            ], 201);
             
         } catch (\Exception $e) {
-            return $this->handleException(
-                $e,
-                'Erreur lors de l\'ajout du favori',
-                [
-                    'user_id' => $utilisateur->id_utilisateur ?? null,
-                    'menu_item_id' => $data['menu_item_id'] ?? null,
-                ]
-            );
+            \Log::error('Erreur lors de l\'ajout du favori', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de l\'ajout du favori',
+                'error' => $e->getMessage(),
+            ], 500);
         }
     }
 
@@ -166,28 +164,40 @@ class FavoriteController extends Controller
             
             // Vérifier que le favori existe
             if (!$favori) {
-                return $this->notFoundResponse('Favori');
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Favori non trouvé',
+                ], 404);
             }
             
             // Vérifier que le favori appartient à l'utilisateur connecté (sécurité)
             if ($favori->id_utilisateur !== $utilisateur->id_utilisateur) {
-                return $this->unauthorizedResponse('Vous n\'êtes pas autorisé à retirer ce favori');
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Vous n\'êtes pas autorisé à retirer ce favori',
+                ], 403);
             }
             
             // Supprimer le favori
             $favori->delete();
             
-            return $this->successResponse(null, 'Favori retiré avec succès', 200);
+            return response()->json([
+                'success' => true,
+                'message' => 'Favori retiré avec succès',
+            ], 200);
             
         } catch (\Exception $e) {
-            return $this->handleException(
-                $e,
-                'Erreur lors de la suppression du favori',
-                [
-                    'user_id' => $utilisateur->id_utilisateur ?? null,
-                    'favori_id' => $id ?? null,
-                ]
-            );
+            \Log::error('Erreur lors de la suppression du favori', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la suppression du favori',
+                'error' => $e->getMessage(),
+            ], 500);
         }
     }
 }

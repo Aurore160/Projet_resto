@@ -36,4 +36,14 @@ return new class extends Migration
         Schema::dropIfExists('commande_articles');
     }
 };
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('commande_articles');
+    }
+};
 

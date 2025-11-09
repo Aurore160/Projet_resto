@@ -48,17 +48,3 @@ class RoleMiddleware
         return $next($request);
     }
 }
-
-        // Si le rôle de l'utilisateur n'est pas dans la liste des rôles autorisés
-        if (!in_array($user->role, $rolesArray)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Accès refusé : vous n\'avez pas les permissions nécessaires',
-                'role_requis' => $rolesArray,
-                'votre_role' => $user->role,
-            ], 403);
-        }
-        
-        return $next($request);
-    }
-}

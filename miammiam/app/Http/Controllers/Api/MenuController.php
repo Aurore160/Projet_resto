@@ -38,9 +38,19 @@ class MenuController extends Controller
                 // Filtre par recherche (nom ou description)
                 if ($search) {
                     $query->where(function ($q) use ($search) {
-                        $q->where('nom', 'ILIKE', "%{$search}%")
-                          ->orWhere('description', 'ILIKE', "%{$search}%")
-                          ->orWhere('ingredients', 'ILIKE', "%{$search}%");
+                        // Utiliser ILIKE pour PostgreSQL, LIKE pour les autres bases
+                        $driver = config('database.default');
+                        $isPostgres = config("database.connections.{$driver}.driver") === 'pgsql';
+                        
+                        if ($isPostgres) {
+                            $q->where('nom', 'ILIKE', "%{$search}%")
+                              ->orWhere('description', 'ILIKE', "%{$search}%")
+                              ->orWhere('ingredients', 'ILIKE', "%{$search}%");
+                        } else {
+                            $q->where('nom', 'LIKE', "%{$search}%")
+                              ->orWhere('description', 'LIKE', "%{$search}%")
+                              ->orWhere('ingredients', 'LIKE', "%{$search}%");
+                        }
                     });
                 }
                 
@@ -59,11 +69,27 @@ class MenuController extends Controller
                 ],
             ], 200);
             
+        } catch (\Illuminate\Database\QueryException $e) {
+            \Log::error('Erreur de base de données lors de la récupération du menu', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur de connexion à la base de données',
+                'error' => config('app.debug') ? $e->getMessage() : 'Erreur de base de données',
+            ], 503);
         } catch (\Exception $e) {
+            \Log::error('Erreur lors de la récupération du menu', [
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             return response()->json([
                 'success' => false,
                 'message' => 'Erreur lors de la récupération du menu',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Une erreur est survenue',
             ], 500);
         }
     }
@@ -136,152 +162,49 @@ class MenuController extends Controller
                 'data' => $categories,
             ], 200);
             
+        } catch (\Illuminate\Database\QueryException $e) {
+            \Log::error('Erreur de base de données lors de la récupération des catégories', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur de connexion à la base de données',
+                'error' => config('app.debug') ? $e->getMessage() : 'Erreur de base de données',
+            ], 503);
         } catch (\Exception $e) {
+            \Log::error('Erreur lors de la récupération des catégories', [
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             return response()->json([
                 'success' => false,
                 'message' => 'Erreur lors de la récupération des catégories',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Une erreur est survenue',
             ], 500);
         }
     }
 
-    /**
-     * Consulter la liste des plats disponibles (pour les employés)
-     * 
-     * GET /api/menu/available
-     * 
-     * Accessible uniquement aux employés (employe, gerant, admin)
-     * Retourne uniquement les plats disponibles (statut_disponibilite = true)
-     * Format optimisé pour un affichage rapide
-     */
-    public function available(Request $request)
+    // Menu disponible pour les employés/gérants/admins
+    public function available()
     {
         try {
-            // Paramètre optionnel pour filtrer par catégorie
-            $categorieId = $request->query('categorie');
-            
-            // Requête de base : uniquement les plats disponibles
-            $query = MenuItem::with('categorie')
-                ->where('statut_disponibilite', true);
-            
-            // Filtre par catégorie si fourni
-            if ($categorieId) {
-                $query->where('id_categorie', $categorieId);
-            }
-            
-            // Trier par catégorie puis par nom
-            $menuItems = $query->orderBy('id_categorie')
-                ->orderBy('nom')
-                ->get();
-            
-            // Formater les données pour un affichage rapide et optimisé
-            $platsFormates = $menuItems->map(function ($item) {
-                return [
-                    'id_menuitem' => $item->id_menuitem,
-                    'nom' => $item->nom,
-                    'description' => $item->description,
-                    'prix' => $item->prix,
-                    'photo_url' => $item->photo_url,
-                    'temps_preparation' => $item->temps_preparation,
-                    'plat_du_jour' => $item->plat_du_jour,
-                    'statut_disponibilite' => $item->statut_disponibilite,
-                    'categorie' => $item->categorie ? [
-                        'id_categorie' => $item->categorie->id_categorie,
-                        'nom' => $item->categorie->nom,
-                    ] : null,
-                ];
-            });
+            $menuItems = MenuItem::with('categorie')
+                                 ->orderBy('id_categorie')
+                                 ->orderBy('nom')
+                                 ->get();
             
             return response()->json([
                 'success' => true,
-                'data' => $platsFormates,
-                'meta' => [
-                    'total' => $platsFormates->count(),
-                    'categorie_filtree' => $categorieId,
-                ],
+                'data' => $menuItems,
             ], 200);
             
         } catch (\Exception $e) {
-            \Log::error('Erreur lors de la récupération des plats disponibles (employé)', [
-                'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-            ]);
-            
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur lors de la récupération des plats disponibles',
-                'error' => $e->getMessage(),
-            ], 500);
-        }
-    }
-}
-
-     * Consulter la liste des plats disponibles (pour les employés)
-     * 
-     * GET /api/menu/available
-     * 
-     * Accessible uniquement aux employés (employe, gerant, admin)
-     * Retourne uniquement les plats disponibles (statut_disponibilite = true)
-     * Format optimisé pour un affichage rapide
-     */
-    public function available(Request $request)
-    {
-        try {
-            // Paramètre optionnel pour filtrer par catégorie
-            $categorieId = $request->query('categorie');
-            
-            // Requête de base : uniquement les plats disponibles
-            $query = MenuItem::with('categorie')
-                ->where('statut_disponibilite', true);
-            
-            // Filtre par catégorie si fourni
-            if ($categorieId) {
-                $query->where('id_categorie', $categorieId);
-            }
-            
-            // Trier par catégorie puis par nom
-            $menuItems = $query->orderBy('id_categorie')
-                ->orderBy('nom')
-                ->get();
-            
-            // Formater les données pour un affichage rapide et optimisé
-            $platsFormates = $menuItems->map(function ($item) {
-                return [
-                    'id_menuitem' => $item->id_menuitem,
-                    'nom' => $item->nom,
-                    'description' => $item->description,
-                    'prix' => $item->prix,
-                    'photo_url' => $item->photo_url,
-                    'temps_preparation' => $item->temps_preparation,
-                    'plat_du_jour' => $item->plat_du_jour,
-                    'statut_disponibilite' => $item->statut_disponibilite,
-                    'categorie' => $item->categorie ? [
-                        'id_categorie' => $item->categorie->id_categorie,
-                        'nom' => $item->categorie->nom,
-                    ] : null,
-                ];
-            });
-            
-            return response()->json([
-                'success' => true,
-                'data' => $platsFormates,
-                'meta' => [
-                    'total' => $platsFormates->count(),
-                    'categorie_filtree' => $categorieId,
-                ],
-            ], 200);
-            
-        } catch (\Exception $e) {
-            \Log::error('Erreur lors de la récupération des plats disponibles (employé)', [
-                'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-            ]);
-            
-            return response()->json([
-                'success' => false,
-                'message' => 'Erreur lors de la récupération des plats disponibles',
+                'message' => 'Erreur lors de la récupération du menu',
                 'error' => $e->getMessage(),
             ], 500);
         }

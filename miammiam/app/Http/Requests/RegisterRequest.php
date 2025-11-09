@@ -43,8 +43,3 @@ class RegisterRequest extends FormRequest
         ];
     }
 }
-
-            'email.unique' => 'Cet email est déjà utilisé',
-        ];
-    }
-}

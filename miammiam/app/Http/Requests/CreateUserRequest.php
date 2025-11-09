@@ -29,11 +29,15 @@ class CreateUserRequest extends FormRequest
             'role' => 'required|in:etudiant,employe,gerant,admin',
         ];
 
-        // Si le rôle est 'employe', ajouter les règles pour les champs employe
+        // Si le rôle est 'employe' et qu'au moins un champ employe est fourni, valider tous les champs employe
         if ($this->input('role') === 'employe') {
-            $rules['matricule'] = 'required|string|max:20|unique:employe,matricule';
-            $rules['role_specifique'] = 'required|in:cuisinier,serveur,livreur,caissier,manager';
-            $rules['date_embauche'] = 'required|date';
+            // Si au moins un champ employe est fourni, tous les champs requis doivent être présents
+            if ($this->has('matricule') || $this->has('role_specifique') || $this->has('date_embauche')) {
+                $rules['matricule'] = 'required|string|max:20|unique:employe,matricule';
+                $rules['role_specifique'] = 'required|in:cuisinier,serveur,livreur,caissier,manager';
+                $rules['date_embauche'] = 'required|date';
+            }
+            // Ces champs sont toujours optionnels même pour les employés
             $rules['salaire'] = 'nullable|numeric|min:0';
             $rules['statut'] = 'nullable|in:actif,inactif,congé,licencie';
         }
@@ -47,27 +51,6 @@ class CreateUserRequest extends FormRequest
             'nom.required' => 'Le nom est obligatoire',
             'prenom.required' => 'Le prénom est obligatoire',
             'email.required' => 'L\'email est obligatoire',
-            'email.email' => 'L\'email doit être valide',
-            'email.unique' => 'Cet email est déjà utilisé',
-            'mot_de_passe.required' => 'Le mot de passe est obligatoire',
-            'mot_de_passe.min' => 'Le mot de passe doit contenir au moins 8 caractères',
-            'mot_de_passe.regex' => 'Le mot de passe doit contenir au moins une minuscule, une majuscule, un chiffre et un caractère spécial',
-            'role.required' => 'Le rôle est obligatoire',
-            'role.in' => 'Le rôle doit être : etudiant, employe, gerant ou admin',
-            // Messages pour les champs employe
-            'matricule.required' => 'Le matricule est obligatoire pour un employé',
-            'matricule.unique' => 'Ce matricule est déjà utilisé',
-            'role_specifique.required' => 'Le rôle spécifique est obligatoire pour un employé',
-            'role_specifique.in' => 'Le rôle spécifique doit être : cuisinier, serveur, livreur, caissier ou manager',
-            'date_embauche.required' => 'La date d\'embauche est obligatoire pour un employé',
-            'date_embauche.date' => 'La date d\'embauche doit être une date valide',
-            'salaire.numeric' => 'Le salaire doit être un nombre',
-            'salaire.min' => 'Le salaire ne peut pas être négatif',
-            'statut.in' => 'Le statut doit être : actif, inactif, congé ou licencie',
-        ];
-    }
-}
-
             'email.email' => 'L\'email doit être valide',
             'email.unique' => 'Cet email est déjà utilisé',
             'mot_de_passe.required' => 'Le mot de passe est obligatoire',

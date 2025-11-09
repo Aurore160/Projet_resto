@@ -36,14 +36,3 @@ return new class extends Migration
         Schema::dropIfExists('payment_configs');
     }
 };
-
-    }
-
-    /**
-     * Reverse the migrations.
-     */
-    public function down(): void
-    {
-        Schema::dropIfExists('payment_configs');
-    }
-};

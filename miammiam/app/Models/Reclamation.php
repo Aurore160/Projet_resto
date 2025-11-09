@@ -54,6 +54,7 @@ class Reclamation extends Model
         return $this->belongsTo(Commande::class, 'id_commande', 'id_commande');
     }
 
+
     /**
      * Relation avec l'employe traitant (nullable)
      */
@@ -77,16 +78,6 @@ class Reclamation extends Model
     {
         return $query->where('statut_reclamation', 'resolue');
     }
-
-    /**
-     * Scope pour un statut spécifique
-     */
-    public function scopeByStatus($query, $status)
-    {
-        return $query->where('statut_reclamation', $status);
-    }
-}
-
 
     /**
      * Scope pour un statut spécifique

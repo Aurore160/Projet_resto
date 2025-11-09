@@ -67,23 +67,58 @@ class CartController extends Controller
     // Mettre à jour le montant total du panier
     private function updatePanierTotal($panier)
     {
-        $panier->montant_total = $panier->getTotal();
+        // Calculer le total directement avec une requête pour éviter les problèmes de lazy loading
+        // et les timeouts potentiels
+        $total = DB::table('commande_articles')
+            ->where('id_commande', $panier->id_commande)
+            ->selectRaw('SUM(prix_unitaire * quantite) as total')
+            ->value('total') ?? 0;
+        
+        $panier->montant_total = (float) $total;
         $panier->save();
     }
 
     // Formater la réponse JSON du panier
     private function formatPanierResponse($panier, $message = null)
     {
-        $panier->load(['articles.menuItem.categorie']);
+        // Charger les articles avec leurs relations de manière optimisée
+        // Ne pas utiliser fresh() car cela recharge tout depuis la DB et peut être lent
+        // Utiliser load() seulement si les articles ne sont pas déjà chargés
+        if (!$panier->relationLoaded('articles')) {
+            $panier->load(['articles.menuItem.categorie']);
+        } 
+        
+        // Formater les articles pour éviter les problèmes de sérialisation
+        $items = $panier->articles->map(function ($article) {
+            return [
+                'id_commande_article' => $article->id_commande_article,
+                'id_menuitem' => $article->id_menuitem,
+                'quantite' => $article->quantite,
+                'prix_unitaire' => (float) $article->prix_unitaire,
+                'sous_total' => (float) ($article->prix_unitaire * $article->quantite),
+                'menu_item' => [
+                    'id_menuitem' => $article->menuItem->id_menuitem ?? null,
+                    'nom' => $article->menuItem->nom ?? 'Plat supprimé',
+                    'description' => $article->menuItem->description ?? null,
+                    'photo_url' => $article->menuItem->photo_url ?? null,
+                    'categorie' => [
+                        'nom' => $article->menuItem->categorie->nom ?? null,
+                    ],
+                ],
+            ];
+        });
+        
+        // Calculer le nombre d'articles directement depuis la collection
+        $nbItems = $panier->articles->sum('quantite');
         
         $response = [
             'success' => true,
             'data' => [
                 'panier' => [
                     'id_panier' => $panier->id_commande,
-                    'items' => $panier->articles,
-                    'total' => $panier->montant_total,
-                    'nb_items' => $panier->getTotalArticles(),
+                    'items' => $items,
+                    'total' => (float) ($panier->montant_total ?? 0),
+                    'nb_items' => $nbItems,
                 ],
             ],
         ];
@@ -102,9 +137,12 @@ class CartController extends Controller
             $utilisateur = $request->user();
             
             // Utiliser une requête explicite avec DB pour éviter les problèmes de convention
+            // Ajouter orderBy pour obtenir le panier le plus récent en cas de multiples paniers
             $panier = DB::table('commandes')
                        ->where('id_utilisateur', $utilisateur->id_utilisateur)
                        ->where('statut', 'panier')
+                       ->orderBy('date_modification', 'desc')
+                       ->orderBy('date_commande', 'desc')
                        ->first();
             
             if (!$panier) {
@@ -177,11 +215,25 @@ class CartController extends Controller
                 ],
             ], 200);
 
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Erreur de connexion à la base de données
+            \Log::error('Erreur de connexion à la base de données lors de la récupération du panier', [
+                'error' => $e->getMessage(),
+                'user_id' => $request->user()?->id_utilisateur ?? null,
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur de connexion à la base de données. Veuillez réessayer plus tard.',
+            ], 503);
         } catch (\Exception $e) {
+            \Log::error('Erreur lors de la récupération du panier', [
+                'error' => $e->getMessage(),
+                'user_id' => $request->user()?->id_utilisateur ?? null,
+            ]);
             return response()->json([
                 'success' => false,
                 'message' => 'Erreur lors de la récupération du panier',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Une erreur est survenue',
             ], 500);
         }
     }
@@ -233,6 +285,11 @@ class CartController extends Controller
             $this->updatePanierTotal($panier);
 
             DB::commit();
+
+            // Recharger le panier depuis la DB pour s'assurer qu'il est à jour
+            // Utiliser find() pour forcer un rechargement depuis la DB
+            $panierId = $panier->id_commande;
+            $panier = Commande::with(['articles.menuItem.categorie'])->find($panierId);
 
             return response()->json(
                 $this->formatPanierResponse($panier, 'Plat ajouté au panier avec succès'),

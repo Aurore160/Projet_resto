@@ -44,3 +44,22 @@ return new class extends Migration
         Schema::dropIfExists('commandes');
     }
 };
+
+            $table->text('commentaire')->nullable();
+            $table->text('instructions_speciales')->nullable();
+            
+            $table->foreign('id_utilisateur')->references('id_utilisateur')->on('utilisateur');
+            $table->index('id_utilisateur');
+            $table->index('statut');
+            $table->index('date_commande');
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('commandes');
+    }
+};

@@ -259,6 +259,13 @@
 </html>
 
 
+
+
+
+
+
+
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -390,12 +397,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <div style="display: flex; align-items: center; justify-content: center; gap: 15px;">
-                @if(file_exists(public_path('logo.jpg')))
-                <img src="{{ asset('logo.jpg') }}" alt="Miam Miam Logo" style="height: 60px; width: auto;" />
-                @endif
-                <h1>Miam Miam</h1>
-            </div>
+            <h1>Miam Miam</h1>
         </div>
         
         <div class="content">

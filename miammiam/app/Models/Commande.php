@@ -60,20 +60,18 @@ class Commande extends Model
         return $this->hasMany(CommandeArticle::class, 'id_commande', 'id_commande');
     }
 
+    // Relation avec les paiements
+    public function payments()
+    {
+        return $this->hasMany(\App\Models\Payment::class, 'id_commande', 'id_commande');
+    }
+
     // Calculer le total des articles
     public function getTotal()
     {
         return $this->articles->sum(function ($article) {
             return $article->prix_unitaire * $article->quantite;
         });
-    }
-
-    // Compter le nombre total d'articles
-    public function getTotalArticles()
-    {
-        return $this->articles->sum('quantite');
-    }
-}
     }
 
     // Compter le nombre total d'articles

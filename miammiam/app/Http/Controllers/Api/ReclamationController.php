@@ -90,16 +90,7 @@ class ReclamationController extends Controller
             }
             $description .= "\nMessage:\n{$data['message']}";
 
-            // Créer la réclamation
-            $this->logger->info('Création de la réclamation en base de données', [
-                'data_to_insert' => [
-                    'id_utilisateur' => $utilisateur->id_utilisateur,
-                    'id_commande' => $idCommande,
-                    'sujet' => $data['sujet'],
-                    'description' => $description,
-                ],
-            ]);
-
+            // Créer la réclamation avec la structure existante de la table
             $reclamation = Reclamation::create([
                 'id_utilisateur' => $utilisateur->id_utilisateur,
                 'id_commande' => $idCommande,
@@ -131,54 +122,7 @@ class ReclamationController extends Controller
                 'date_reclamation' => $reclamation->date_reclamation->format('Y-m-d H:i:s'),
             ];
 
-            return $this->createdResponse($reclamationData, 'Votre message a été envoyé avec succès. Nous vous répondrons dans les plus brefs délais.');
-            
-        } catch (\Exception $e) {
-            $this->logger->error('Erreur lors de la création de la réclamation', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'request_data' => $request->all(),
-            ]);
-
-            return $this->handleException(
-                $e,
-                'Erreur lors de l\'envoi de votre message',
-                [
-                    'email' => $request->input('email'),
-                ]
-            );
-        }
-    }
-}
-
-                'priorite' => 'moyenne',
-                'statut_reclamation' => 'ouverte',
-                'date_reclamation' => now(),
-                'date_modification' => now(),
-            ]);
-
-            // Logger la création
-            $this->logger->info('Réclamation créée', [
-                'id_reclamation' => $reclamation->id_reclamation,
-                'sujet' => $reclamation->sujet,
-                'id_utilisateur' => $reclamation->id_utilisateur,
-                'id_commande' => $reclamation->id_commande,
-            ]);
-
-            // Formater la réponse
-            $reclamationData = [
-                'id_reclamation' => $reclamation->id_reclamation,
-                'nom' => $data['nom'],
-                'email' => $data['email'],
-                'sujet' => $reclamation->sujet,
-                'message' => $data['message'],
-                'statut_reclamation' => $reclamation->statut_reclamation,
-                'date_reclamation' => $reclamation->date_reclamation->format('Y-m-d H:i:s'),
-            ];
-
-            return $this->createdResponse($reclamationData, 'Votre message a été envoyé avec succès. Nous vous répondrons dans les plus brefs délais.');
+            return $this->successResponse($reclamationData, 'Votre message a été envoyé avec succès. Nous vous répondrons dans les plus brefs délais.', 201);
             
         } catch (\Exception $e) {
             $this->logger->error('Erreur lors de la création de la réclamation', [

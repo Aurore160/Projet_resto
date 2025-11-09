@@ -70,3 +70,282 @@ return new class extends Migration
         });
     }
 };
+
+            // Index pour améliorer les performances de filtrage
+            $table->index('statut_moderation');
+            $table->index('date_reponse');
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::table('avis', function (Blueprint $table) {
+            // Supprimer les index
+            $table->dropIndex(['statut_moderation']);
+            $table->dropIndex(['date_reponse']);
+            
+            // Supprimer les colonnes
+            $table->dropColumn(['reponse_gerant', 'date_reponse', 'statut_moderation']);
+        });
+    }
+};
+            // Index pour améliorer les performances de filtrage
+            $table->index('statut_moderation');
+            $table->index('date_reponse');
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::table('avis', function (Blueprint $table) {
+            // Supprimer les index
+            $table->dropIndex(['statut_moderation']);
+            $table->dropIndex(['date_reponse']);
+            
+            // Supprimer les colonnes
+            $table->dropColumn(['reponse_gerant', 'date_reponse', 'statut_moderation']);
+        });
+    }
+};
+            // Index pour améliorer les performances de filtrage
+            $table->index('statut_moderation');
+            $table->index('date_reponse');
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::table('avis', function (Blueprint $table) {
+            // Supprimer les index
+            $table->dropIndex(['statut_moderation']);
+            $table->dropIndex(['date_reponse']);
+            
+            // Supprimer les colonnes
+            $table->dropColumn(['reponse_gerant', 'date_reponse', 'statut_moderation']);
+        });
+    }
+};
+
+            // Index pour améliorer les performances de filtrage
+            $table->index('statut_moderation');
+            $table->index('date_reponse');
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::table('avis', function (Blueprint $table) {
+            // Supprimer les index
+            $table->dropIndex(['statut_moderation']);
+            $table->dropIndex(['date_reponse']);
+            
+            // Supprimer les colonnes
+            $table->dropColumn(['reponse_gerant', 'date_reponse', 'statut_moderation']);
+        });
+    }
+};
+
+            // Index pour améliorer les performances de filtrage
+            $table->index('statut_moderation');
+            $table->index('date_reponse');
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::table('avis', function (Blueprint $table) {
+            // Supprimer les index
+            $table->dropIndex(['statut_moderation']);
+            $table->dropIndex(['date_reponse']);
+            
+            // Supprimer les colonnes
+            $table->dropColumn(['reponse_gerant', 'date_reponse', 'statut_moderation']);
+        });
+    }
+};
+            // Index pour améliorer les performances de filtrage
+            $table->index('statut_moderation');
+            $table->index('date_reponse');
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::table('avis', function (Blueprint $table) {
+            // Supprimer les index
+            $table->dropIndex(['statut_moderation']);
+            $table->dropIndex(['date_reponse']);
+            
+            // Supprimer les colonnes
+            $table->dropColumn(['reponse_gerant', 'date_reponse', 'statut_moderation']);
+        });
+    }
+};
+            // Index pour améliorer les performances de filtrage
+            $table->index('statut_moderation');
+            $table->index('date_reponse');
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::table('avis', function (Blueprint $table) {
+            // Supprimer les index
+            $table->dropIndex(['statut_moderation']);
+            $table->dropIndex(['date_reponse']);
+            
+            // Supprimer les colonnes
+            $table->dropColumn(['reponse_gerant', 'date_reponse', 'statut_moderation']);
+        });
+    }
+};
+
+            // Index pour améliorer les performances de filtrage
+            $table->index('statut_moderation');
+            $table->index('date_reponse');
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::table('avis', function (Blueprint $table) {
+            // Supprimer les index
+            $table->dropIndex(['statut_moderation']);
+            $table->dropIndex(['date_reponse']);
+            
+            // Supprimer les colonnes
+            $table->dropColumn(['reponse_gerant', 'date_reponse', 'statut_moderation']);
+        });
+    }
+};
+
+            // Index pour améliorer les performances de filtrage
+            $table->index('statut_moderation');
+            $table->index('date_reponse');
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::table('avis', function (Blueprint $table) {
+            // Supprimer les index
+            $table->dropIndex(['statut_moderation']);
+            $table->dropIndex(['date_reponse']);
+            
+            // Supprimer les colonnes
+            $table->dropColumn(['reponse_gerant', 'date_reponse', 'statut_moderation']);
+        });
+    }
+};
+            // Index pour améliorer les performances de filtrage
+            $table->index('statut_moderation');
+            $table->index('date_reponse');
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::table('avis', function (Blueprint $table) {
+            // Supprimer les index
+            $table->dropIndex(['statut_moderation']);
+            $table->dropIndex(['date_reponse']);
+            
+            // Supprimer les colonnes
+            $table->dropColumn(['reponse_gerant', 'date_reponse', 'statut_moderation']);
+        });
+    }
+};
+            // Index pour améliorer les performances de filtrage
+            $table->index('statut_moderation');
+            $table->index('date_reponse');
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::table('avis', function (Blueprint $table) {
+            // Supprimer les index
+            $table->dropIndex(['statut_moderation']);
+            $table->dropIndex(['date_reponse']);
+            
+            // Supprimer les colonnes
+            $table->dropColumn(['reponse_gerant', 'date_reponse', 'statut_moderation']);
+        });
+    }
+};
+
+            // Index pour améliorer les performances de filtrage
+            $table->index('statut_moderation');
+            $table->index('date_reponse');
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::table('avis', function (Blueprint $table) {
+            // Supprimer les index
+            $table->dropIndex(['statut_moderation']);
+            $table->dropIndex(['date_reponse']);
+            
+            // Supprimer les colonnes
+            $table->dropColumn(['reponse_gerant', 'date_reponse', 'statut_moderation']);
+        });
+    }
+};
+            // Index pour améliorer les performances de filtrage
+            $table->index('statut_moderation');
+            $table->index('date_reponse');
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::table('avis', function (Blueprint $table) {
+            // Supprimer les index
+            $table->dropIndex(['statut_moderation']);
+            $table->dropIndex(['date_reponse']);
+            
+            // Supprimer les colonnes
+            $table->dropColumn(['reponse_gerant', 'date_reponse', 'statut_moderation']);
+        });
+    }
+};

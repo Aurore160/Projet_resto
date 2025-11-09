@@ -24,7 +24,10 @@ class InitializePaymentRequest extends FormRequest
         return [
             'commande_id' => 'required|integer|exists:commandes,id_commande',
             'language' => 'nullable|in:fr,en', // Optionnel : français ou anglais
-            'payment_method' => 'nullable|in:credit_card,mobile_money', // Optionnel : moyen de paiement choisi
+            'payment_method' => 'required|in:credit_card,mobile_money', // Requis : moyen de paiement choisi
+            'adresse_livraison' => 'nullable|string|max:500', // Optionnel : adresse de livraison
+            'montant_total' => 'nullable|numeric|min:0', // Optionnel : montant total (pour vérification)
+            'points_utilises' => 'nullable|integer|min:0', // Optionnel : points de fidélité utilisés
         ];
     }
 
@@ -36,8 +39,8 @@ class InitializePaymentRequest extends FormRequest
             'commande_id.exists' => 'La commande spécifiée n\'existe pas',
             'language.in' => 'La langue doit être "fr" ou "en"',
             'payment_method.in' => 'Le moyen de paiement doit être "credit_card" ou "mobile_money"',
+            'points_utilises.integer' => 'Le nombre de points doit être un nombre entier',
+            'points_utilises.min' => 'Le nombre de points ne peut pas être négatif',
         ];
-    }
-}
     }
 }

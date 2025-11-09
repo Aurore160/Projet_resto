@@ -72,3 +72,316 @@ class ModerateReviewRequest extends FormRequest
         ];
     }
 }
+
+    {
+        return [
+            'statut_moderation' => [
+                'required',
+                'string',
+                'in:approuve,en_attente,rejete',
+            ],
+        ];
+    }
+
+    /**
+     * Messages d'erreur personnalisés.
+     */
+    public function messages(): array
+    {
+        return [
+            'statut_moderation.required' => 'Le statut de modération est obligatoire',
+            'statut_moderation.string' => 'Le statut de modération doit être une chaîne de caractères',
+            'statut_moderation.in' => 'Le statut de modération doit être : approuve, en_attente ou rejete',
+        ];
+    }
+}
+    {
+        return [
+            'statut_moderation' => [
+                'required',
+                'string',
+                'in:approuve,en_attente,rejete',
+            ],
+        ];
+    }
+    /**
+     * Messages d'erreur personnalisés.
+     */
+    public function messages(): array
+    {
+        return [
+            'statut_moderation.required' => 'Le statut de modération est obligatoire',
+            'statut_moderation.string' => 'Le statut de modération doit être une chaîne de caractères',
+            'statut_moderation.in' => 'Le statut de modération doit être : approuve, en_attente ou rejete',
+        ];
+    }
+}
+
+    {
+        return [
+            'statut_moderation' => [
+                'required',
+                'string',
+                'in:approuve,en_attente,rejete',
+            ],
+        ];
+    }
+
+    /**
+     * Messages d'erreur personnalisés.
+     */
+    public function messages(): array
+    {
+        return [
+            'statut_moderation.required' => 'Le statut de modération est obligatoire',
+            'statut_moderation.string' => 'Le statut de modération doit être une chaîne de caractères',
+            'statut_moderation.in' => 'Le statut de modération doit être : approuve, en_attente ou rejete',
+        ];
+    }
+}
+
+    {
+        return [
+            'statut_moderation' => [
+                'required',
+                'string',
+                'in:approuve,en_attente,rejete',
+            ],
+        ];
+    }
+
+    /**
+     * Messages d'erreur personnalisés.
+     */
+    public function messages(): array
+    {
+        return [
+            'statut_moderation.required' => 'Le statut de modération est obligatoire',
+            'statut_moderation.string' => 'Le statut de modération doit être une chaîne de caractères',
+            'statut_moderation.in' => 'Le statut de modération doit être : approuve, en_attente ou rejete',
+        ];
+    }
+}
+
+    {
+        return [
+            'statut_moderation' => [
+                'required',
+                'string',
+                'in:approuve,en_attente,rejete',
+            ],
+        ];
+    }
+
+    /**
+     * Messages d'erreur personnalisés.
+     */
+    public function messages(): array
+    {
+        return [
+            'statut_moderation.required' => 'Le statut de modération est obligatoire',
+            'statut_moderation.string' => 'Le statut de modération doit être une chaîne de caractères',
+            'statut_moderation.in' => 'Le statut de modération doit être : approuve, en_attente ou rejete',
+        ];
+    }
+}
+    {
+        return [
+            'statut_moderation' => [
+                'required',
+                'string',
+                'in:approuve,en_attente,rejete',
+            ],
+        ];
+    }
+    /**
+     * Messages d'erreur personnalisés.
+     */
+    public function messages(): array
+    {
+        return [
+            'statut_moderation.required' => 'Le statut de modération est obligatoire',
+            'statut_moderation.string' => 'Le statut de modération doit être une chaîne de caractères',
+            'statut_moderation.in' => 'Le statut de modération doit être : approuve, en_attente ou rejete',
+        ];
+    }
+}
+
+    {
+        return [
+            'statut_moderation' => [
+                'required',
+                'string',
+                'in:approuve,en_attente,rejete',
+            ],
+        ];
+    }
+
+    /**
+     * Messages d'erreur personnalisés.
+     */
+    public function messages(): array
+    {
+        return [
+            'statut_moderation.required' => 'Le statut de modération est obligatoire',
+            'statut_moderation.string' => 'Le statut de modération doit être une chaîne de caractères',
+            'statut_moderation.in' => 'Le statut de modération doit être : approuve, en_attente ou rejete',
+        ];
+    }
+}
+
+    {
+        return [
+            'statut_moderation' => [
+                'required',
+                'string',
+                'in:approuve,en_attente,rejete',
+            ],
+        ];
+    }
+
+    /**
+     * Messages d'erreur personnalisés.
+     */
+    public function messages(): array
+    {
+        return [
+            'statut_moderation.required' => 'Le statut de modération est obligatoire',
+            'statut_moderation.string' => 'Le statut de modération doit être une chaîne de caractères',
+            'statut_moderation.in' => 'Le statut de modération doit être : approuve, en_attente ou rejete',
+        ];
+    }
+}
+
+    {
+        return [
+            'statut_moderation' => [
+                'required',
+                'string',
+                'in:approuve,en_attente,rejete',
+            ],
+        ];
+    }
+
+    /**
+     * Messages d'erreur personnalisés.
+     */
+    public function messages(): array
+    {
+        return [
+            'statut_moderation.required' => 'Le statut de modération est obligatoire',
+            'statut_moderation.string' => 'Le statut de modération doit être une chaîne de caractères',
+            'statut_moderation.in' => 'Le statut de modération doit être : approuve, en_attente ou rejete',
+        ];
+    }
+}
+    {
+        return [
+            'statut_moderation' => [
+                'required',
+                'string',
+                'in:approuve,en_attente,rejete',
+            ],
+        ];
+    }
+    /**
+     * Messages d'erreur personnalisés.
+     */
+    public function messages(): array
+    {
+        return [
+            'statut_moderation.required' => 'Le statut de modération est obligatoire',
+            'statut_moderation.string' => 'Le statut de modération doit être une chaîne de caractères',
+            'statut_moderation.in' => 'Le statut de modération doit être : approuve, en_attente ou rejete',
+        ];
+    }
+}
+
+    {
+        return [
+            'statut_moderation' => [
+                'required',
+                'string',
+                'in:approuve,en_attente,rejete',
+            ],
+        ];
+    }
+
+    /**
+     * Messages d'erreur personnalisés.
+     */
+    public function messages(): array
+    {
+        return [
+            'statut_moderation.required' => 'Le statut de modération est obligatoire',
+            'statut_moderation.string' => 'Le statut de modération doit être une chaîne de caractères',
+            'statut_moderation.in' => 'Le statut de modération doit être : approuve, en_attente ou rejete',
+        ];
+    }
+}
+
+    {
+        return [
+            'statut_moderation' => [
+                'required',
+                'string',
+                'in:approuve,en_attente,rejete',
+            ],
+        ];
+    }
+
+    /**
+     * Messages d'erreur personnalisés.
+     */
+    public function messages(): array
+    {
+        return [
+            'statut_moderation.required' => 'Le statut de modération est obligatoire',
+            'statut_moderation.string' => 'Le statut de modération doit être une chaîne de caractères',
+            'statut_moderation.in' => 'Le statut de modération doit être : approuve, en_attente ou rejete',
+        ];
+    }
+}
+    {
+        return [
+            'statut_moderation' => [
+                'required',
+                'string',
+                'in:approuve,en_attente,rejete',
+            ],
+        ];
+    }
+
+    /**
+     * Messages d'erreur personnalisés.
+     */
+    public function messages(): array
+    {
+        return [
+            'statut_moderation.required' => 'Le statut de modération est obligatoire',
+            'statut_moderation.string' => 'Le statut de modération doit être une chaîne de caractères',
+            'statut_moderation.in' => 'Le statut de modération doit être : approuve, en_attente ou rejete',
+        ];
+    }
+}
+    {
+        return [
+            'statut_moderation' => [
+                'required',
+                'string',
+                'in:approuve,en_attente,rejete',
+            ],
+        ];
+    }
+    /**
+     * Messages d'erreur personnalisés.
+     */
+    public function messages(): array
+    {
+        return [
+            'statut_moderation.required' => 'Le statut de modération est obligatoire',
+            'statut_moderation.string' => 'Le statut de modération doit être une chaîne de caractères',
+            'statut_moderation.in' => 'Le statut de modération doit être : approuve, en_attente ou rejete',
+        ];
+    }
+}

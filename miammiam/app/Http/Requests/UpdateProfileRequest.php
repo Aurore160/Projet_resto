@@ -18,8 +18,10 @@ class UpdateProfileRequest extends FormRequest
         return [
             'nom' => 'sometimes|nullable|string|max:100',
             'prenom' => 'sometimes|nullable|string|max:100',
+            'postnom' => 'nullable|string|max:100',
             'email' => 'sometimes|nullable|email|max:255|unique:utilisateur,email,' . $userId . ',id_utilisateur',
             'telephone' => 'nullable|string|max:20',
+            'date_naissance' => 'nullable|date',
             'adresse_livraison' => 'nullable|string',
             'adresse_facturation' => 'nullable|string',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120', // Max 5MB
@@ -45,10 +47,6 @@ class UpdateProfileRequest extends FormRequest
             'nouveau_mot_de_passe.regex' => 'Le nouveau mot de passe doit contenir au moins une minuscule, une majuscule, un chiffre et un caractère spécial (@$!%*?&)',
             'nouveau_mot_de_passe.confirmed' => 'La confirmation du nouveau mot de passe ne correspond pas',
             'mot_de_passe_actuel.required_with' => 'Le mot de passe actuel est requis pour changer de mot de passe',
-        ];
-    }
-}
-
         ];
     }
 }

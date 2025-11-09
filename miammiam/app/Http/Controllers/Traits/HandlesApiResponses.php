@@ -2,23 +2,21 @@
 
 namespace App\Http\Controllers\Traits;
 
-use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Log;
-use Exception;
-
 trait HandlesApiResponses
 {
     /**
-     * Retourner une réponse JSON de succès
+     * Retourner une réponse de succès formatée
      * 
      * @param mixed $data Les données à retourner
      * @param string|null $message Le message de succès
-     * @param int $statusCode Le code HTTP (par défaut 200)
-     * @return JsonResponse
+     * @param int $statusCode Le code de statut HTTP (défaut: 200)
+     * @return \Illuminate\Http\JsonResponse
      */
-    protected function successResponse($data = null, ?string $message = null, int $statusCode = 200): JsonResponse
+    protected function successResponse($data = null, $message = null, $statusCode = 200)
     {
-        $response = ['success' => true];
+        $response = [
+            'success' => true,
+        ];
 
         if ($message !== null) {
             $response['message'] = $message;
@@ -32,14 +30,14 @@ trait HandlesApiResponses
     }
 
     /**
-     * Retourner une réponse JSON d'erreur
+     * Retourner une réponse d'erreur formatée
      * 
      * @param string $message Le message d'erreur
-     * @param int $statusCode Le code HTTP (par défaut 400)
-     * @param mixed $errors Erreurs supplémentaires (validation, etc.)
-     * @return JsonResponse
+     * @param int $statusCode Le code de statut HTTP (défaut: 400)
+     * @param mixed $errors Les erreurs détaillées (optionnel)
+     * @return \Illuminate\Http\JsonResponse
      */
-    protected function errorResponse(string $message, int $statusCode = 400, $errors = null): JsonResponse
+    protected function errorResponse($message, $statusCode = 400, $errors = null)
     {
         $response = [
             'success' => false,
@@ -54,201 +52,71 @@ trait HandlesApiResponses
     }
 
     /**
-     * Gérer une exception et retourner une réponse d'erreur standardisée
+     * Retourner une réponse "non trouvé" formatée
      * 
-     * @param Exception $e L'exception capturée
-     * @param string $context Le contexte de l'erreur (pour le logging)
-     * @param array $additionalData Données supplémentaires pour le log
-     * @param bool $includeDetails Inclure les détails de l'exception dans la réponse (déconseillé en production)
-     * @return JsonResponse
+     * @param string $resource Le nom de la ressource non trouvée
+     * @return \Illuminate\Http\JsonResponse
      */
-    protected function handleException(
-        Exception $e,
-        string $context,
-        array $additionalData = [],
-        bool $includeDetails = false
-    ): JsonResponse {
-        // Logger l'erreur avec le contexte
-        Log::error($context, array_merge([
+    protected function notFoundResponse($resource = 'Ressource')
+    {
+        return $this->errorResponse(
+            "{$resource} non trouvé(e)",
+            404
+        );
+    }
+
+    /**
+     * Gérer une exception et retourner une réponse formatée
+     * 
+     * @param \Exception $e L'exception à gérer
+     * @param string $message Le message d'erreur personnalisé
+     * @param array|null $context Le contexte additionnel pour le logging
+     * @param bool $includeDetails Si true, inclut les détails de l'erreur en mode debug
+     * @return \Illuminate\Http\JsonResponse
+     */
+    protected function handleException(\Exception $e, $message = 'Une erreur est survenue', $context = null, $includeDetails = false)
+    {
+        // Logger l'erreur
+        \Log::error($message, [
             'error' => $e->getMessage(),
             'file' => $e->getFile(),
             'line' => $e->getLine(),
-        ], $additionalData));
+            'trace' => $e->getTraceAsString(),
+            'context' => $context,
+        ]);
 
-        $response = [
-            'success' => false,
-            'message' => 'Erreur lors du traitement',
-        ];
-
-        // En développement, on peut inclure plus de détails
-        if ($includeDetails && config('app.debug', false)) {
-            $response['error'] = $e->getMessage();
-            $response['file'] = $e->getFile();
-            $response['line'] = $e->getLine();
-        }
-
-        return response()->json($response, 500);
-    }
-
-    /**
-     * Retourner une réponse "non trouvé" (404)
-     * 
-     * @param string $resource Le nom de la ressource (ex: "Commande", "Utilisateur")
-     * @return JsonResponse
-     */
-    protected function notFoundResponse(string $resource = 'Ressource'): JsonResponse
-    {
-        return $this->errorResponse("{$resource} non trouvée", 404);
-    }
-
-    /**
-     * Retourner une réponse "non autorisé" (403)
-     * 
-     * @param string $message Le message d'erreur
-     * @return JsonResponse
-     */
-    protected function unauthorizedResponse(string $message = 'Accès non autorisé'): JsonResponse
-    {
-        return $this->errorResponse($message, 403);
-    }
-
-    /**
-     * Retourner une réponse "créé" (201)
-     * 
-     * @param mixed $data Les données créées
-     * @param string|null $message Le message de succès
-     * @return JsonResponse
-     */
-    protected function createdResponse($data = null, ?string $message = null): JsonResponse
-    {
-        return $this->successResponse($data, $message, 201);
-    }
-}
-
-
-
-namespace App\Http\Controllers\Traits;
-
-use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Log;
-use Exception;
-
-trait HandlesApiResponses
-{
-    /**
-     * Retourner une réponse JSON de succès
-     * 
-     * @param mixed $data Les données à retourner
-     * @param string|null $message Le message de succès
-     * @param int $statusCode Le code HTTP (par défaut 200)
-     * @return JsonResponse
-     */
-    protected function successResponse($data = null, ?string $message = null, int $statusCode = 200): JsonResponse
-    {
-        $response = ['success' => true];
-
-        if ($message !== null) {
-            $response['message'] = $message;
-        }
-
-        if ($data !== null) {
-            $response['data'] = $data;
-        }
-
-        return response()->json($response, $statusCode);
-    }
-
-    /**
-     * Retourner une réponse JSON d'erreur
-     * 
-     * @param string $message Le message d'erreur
-     * @param int $statusCode Le code HTTP (par défaut 400)
-     * @param mixed $errors Erreurs supplémentaires (validation, etc.)
-     * @return JsonResponse
-     */
-    protected function errorResponse(string $message, int $statusCode = 400, $errors = null): JsonResponse
-    {
+        // Préparer la réponse
         $response = [
             'success' => false,
             'message' => $message,
         ];
 
-        if ($errors !== null) {
-            $response['errors'] = $errors;
+        // Inclure les détails si demandé et en mode debug
+        if ($includeDetails && config('app.debug')) {
+            $response['error'] = [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ];
+        } elseif (config('app.debug')) {
+            $response['error'] = $e->getMessage();
+        }
+
+        // Déterminer le code de statut HTTP approprié
+        $statusCode = 500;
+        if ($e instanceof \Illuminate\Database\Eloquent\ModelNotFoundException) {
+            $statusCode = 404;
+        } elseif ($e instanceof \Illuminate\Validation\ValidationException) {
+            $statusCode = 422;
+        } elseif ($e instanceof \Illuminate\Auth\AuthenticationException) {
+            $statusCode = 401;
+        } elseif ($e instanceof \Illuminate\Auth\Access\AuthorizationException) {
+            $statusCode = 403;
+        } elseif (method_exists($e, 'getStatusCode')) {
+            $statusCode = $e->getStatusCode();
         }
 
         return response()->json($response, $statusCode);
-    }
-
-    /**
-     * Gérer une exception et retourner une réponse d'erreur standardisée
-     * 
-     * @param Exception $e L'exception capturée
-     * @param string $context Le contexte de l'erreur (pour le logging)
-     * @param array $additionalData Données supplémentaires pour le log
-     * @param bool $includeDetails Inclure les détails de l'exception dans la réponse (déconseillé en production)
-     * @return JsonResponse
-     */
-    protected function handleException(
-        Exception $e,
-        string $context,
-        array $additionalData = [],
-        bool $includeDetails = false
-    ): JsonResponse {
-        // Logger l'erreur avec le contexte
-        Log::error($context, array_merge([
-            'error' => $e->getMessage(),
-            'file' => $e->getFile(),
-            'line' => $e->getLine(),
-        ], $additionalData));
-
-        $response = [
-            'success' => false,
-            'message' => 'Erreur lors du traitement',
-        ];
-
-        // En développement, on peut inclure plus de détails
-        if ($includeDetails && config('app.debug', false)) {
-            $response['error'] = $e->getMessage();
-            $response['file'] = $e->getFile();
-            $response['line'] = $e->getLine();
-        }
-
-        return response()->json($response, 500);
-    }
-
-    /**
-     * Retourner une réponse "non trouvé" (404)
-     * 
-     * @param string $resource Le nom de la ressource (ex: "Commande", "Utilisateur")
-     * @return JsonResponse
-     */
-    protected function notFoundResponse(string $resource = 'Ressource'): JsonResponse
-    {
-        return $this->errorResponse("{$resource} non trouvée", 404);
-    }
-
-    /**
-     * Retourner une réponse "non autorisé" (403)
-     * 
-     * @param string $message Le message d'erreur
-     * @return JsonResponse
-     */
-    protected function unauthorizedResponse(string $message = 'Accès non autorisé'): JsonResponse
-    {
-        return $this->errorResponse($message, 403);
-    }
-
-    /**
-     * Retourner une réponse "créé" (201)
-     * 
-     * @param mixed $data Les données créées
-     * @param string|null $message Le message de succès
-     * @return JsonResponse
-     */
-    protected function createdResponse($data = null, ?string $message = null): JsonResponse
-    {
-        return $this->successResponse($data, $message, 201);
     }
 }
 

@@ -40,3 +40,18 @@ return new class extends Migration
         Schema::dropIfExists('menu_item');
     }
 };
+
+            $table->foreign('id_categorie')->references('id_categorie')->on('categories');
+            $table->index('id_categorie');
+            $table->check(['prix >= 0']);
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('menu_item');
+    }
+};

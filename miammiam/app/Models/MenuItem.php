@@ -48,46 +48,7 @@ class MenuItem extends Model
     public function promotions()
     {
         return $this->belongsToMany(Promotion::class, 'promo_menu_item', 'id_menuitem', 'id_promo')
-            ->withPivot('prix_promotionnel', 'date_debut', 'date_fin', 'statut')
-            ->withTimestamps();
-    }
-
-    /**
-     * Récupérer le prix promotionnel actuel si une promotion est active
-     */
-    public function getPrixPromotionnel()
-    {
-        $promoActive = PromoMenuItem::where('id_menuitem', $this->id_menuitem)
-            ->where('statut', 'active')
-            ->where(function ($q) {
-                $q->whereNull('date_debut')
-                  ->orWhere('date_debut', '<=', now());
-            })
-            ->where(function ($q) {
-                $q->whereNull('date_fin')
-                  ->orWhere('date_fin', '>=', now());
-            })
-            ->first();
-
-        return $promoActive ? $promoActive->prix_promotionnel : null;
-    }
-
-    /**
-     * Vérifier si le plat est en promotion
-     */
-    public function estEnPromotion(): bool
-    {
-        return $this->getPrixPromotionnel() !== null;
-    }
-}
-
-     * Relation : les promotions appliquées à ce plat
-     */
-    public function promotions()
-    {
-        return $this->belongsToMany(Promotion::class, 'promo_menu_item', 'id_menuitem', 'id_promo')
-            ->withPivot('prix_promotionnel', 'date_debut', 'date_fin', 'statut')
-            ->withTimestamps();
+            ->withPivot('prix_promotionnel', 'date_debut', 'date_fin', 'statut');
     }
 
     /**

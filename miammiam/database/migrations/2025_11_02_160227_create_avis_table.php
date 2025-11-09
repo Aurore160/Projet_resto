@@ -59,3 +59,104 @@ return new class extends Migration
         Schema::dropIfExists('avis');
     }
 };
+
+                ->comment('Note de 1 à 5');
+            
+            // Commentaire (optionnel)
+            $table->text('commentaire')->nullable();
+            
+            // Timestamp
+            $table->timestamp('date_creation')->useCurrent();
+            
+            // Contraintes de clés étrangères
+            $table->foreign('id_utilisateur')->references('id_utilisateur')->on('utilisateur');
+            $table->foreign('id_menuitem')->references('id_menuitem')->on('menu_item')->onDelete('set null');
+            $table->foreign('id_commande')->references('id_commande')->on('commandes')->onDelete('set null');
+            
+            // Index pour améliorer les performances
+            $table->index('id_utilisateur');
+            $table->index('id_menuitem');
+            $table->index('id_commande');
+            $table->index('type_avis');
+            $table->index('date_creation');
+            
+            // Contrainte : la note doit être entre 1 et 5
+            // Note: Cette contrainte sera ajoutée directement dans PostgreSQL si nécessaire
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('avis');
+    }
+};
+
+                ->comment('Note de 1 à 5');
+            
+            // Commentaire (optionnel)
+            $table->text('commentaire')->nullable();
+            
+            // Timestamp
+            $table->timestamp('date_creation')->useCurrent();
+            
+            // Contraintes de clés étrangères
+            $table->foreign('id_utilisateur')->references('id_utilisateur')->on('utilisateur');
+            $table->foreign('id_menuitem')->references('id_menuitem')->on('menu_item')->onDelete('set null');
+            $table->foreign('id_commande')->references('id_commande')->on('commandes')->onDelete('set null');
+            
+            // Index pour améliorer les performances
+            $table->index('id_utilisateur');
+            $table->index('id_menuitem');
+            $table->index('id_commande');
+            $table->index('type_avis');
+            $table->index('date_creation');
+            
+            // Contrainte : la note doit être entre 1 et 5
+            // Note: Cette contrainte sera ajoutée directement dans PostgreSQL si nécessaire
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('avis');
+    }
+};
+                ->comment('Note de 1 à 5');
+            
+            // Commentaire (optionnel)
+            $table->text('commentaire')->nullable();
+            
+            // Timestamp
+            $table->timestamp('date_creation')->useCurrent();
+            
+            // Contraintes de clés étrangères
+            $table->foreign('id_utilisateur')->references('id_utilisateur')->on('utilisateur');
+            $table->foreign('id_menuitem')->references('id_menuitem')->on('menu_item')->onDelete('set null');
+            $table->foreign('id_commande')->references('id_commande')->on('commandes')->onDelete('set null');
+            
+            // Index pour améliorer les performances
+            $table->index('id_utilisateur');
+            $table->index('id_menuitem');
+            $table->index('id_commande');
+            $table->index('type_avis');
+            $table->index('date_creation');
+            
+            // Contrainte : la note doit être entre 1 et 5
+            // Note: Cette contrainte sera ajoutée directement dans PostgreSQL si nécessaire
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('avis');
+    }
+};

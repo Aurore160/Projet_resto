@@ -47,3 +47,4 @@ class Favori extends Model
     }
 }
 
+

@@ -54,3 +54,178 @@ return new class extends Migration
         });
     }
 };
+
+    {
+        Schema::table('commandes', function (Blueprint $table) {
+            // Supprimer la contrainte de clé étrangère
+            $table->dropForeign(['id_livreur']);
+            
+            // Supprimer l'index
+            $table->dropIndex(['id_livreur']);
+            
+            // Supprimer la colonne
+            $table->dropColumn('id_livreur');
+        });
+    }
+};
+    {
+        Schema::table('commandes', function (Blueprint $table) {
+            // Supprimer la contrainte de clé étrangère
+            $table->dropForeign(['id_livreur']);
+            
+            // Supprimer l'index
+            $table->dropIndex(['id_livreur']);
+            
+            // Supprimer la colonne
+            $table->dropColumn('id_livreur');
+        });
+    }
+};
+    {
+        Schema::table('commandes', function (Blueprint $table) {
+            // Supprimer la contrainte de clé étrangère
+            $table->dropForeign(['id_livreur']);
+            
+            // Supprimer l'index
+            $table->dropIndex(['id_livreur']);
+            
+            // Supprimer la colonne
+            $table->dropColumn('id_livreur');
+        });
+    }
+};
+
+    {
+        Schema::table('commandes', function (Blueprint $table) {
+            // Supprimer la contrainte de clé étrangère
+            $table->dropForeign(['id_livreur']);
+            
+            // Supprimer l'index
+            $table->dropIndex(['id_livreur']);
+            
+            // Supprimer la colonne
+            $table->dropColumn('id_livreur');
+        });
+    }
+};
+
+    {
+        Schema::table('commandes', function (Blueprint $table) {
+            // Supprimer la contrainte de clé étrangère
+            $table->dropForeign(['id_livreur']);
+            
+            // Supprimer l'index
+            $table->dropIndex(['id_livreur']);
+            
+            // Supprimer la colonne
+            $table->dropColumn('id_livreur');
+        });
+    }
+};
+    {
+        Schema::table('commandes', function (Blueprint $table) {
+            // Supprimer la contrainte de clé étrangère
+            $table->dropForeign(['id_livreur']);
+            
+            // Supprimer l'index
+            $table->dropIndex(['id_livreur']);
+            
+            // Supprimer la colonne
+            $table->dropColumn('id_livreur');
+        });
+    }
+};
+    {
+        Schema::table('commandes', function (Blueprint $table) {
+            // Supprimer la contrainte de clé étrangère
+            $table->dropForeign(['id_livreur']);
+            
+            // Supprimer l'index
+            $table->dropIndex(['id_livreur']);
+            
+            // Supprimer la colonne
+            $table->dropColumn('id_livreur');
+        });
+    }
+};
+
+    {
+        Schema::table('commandes', function (Blueprint $table) {
+            // Supprimer la contrainte de clé étrangère
+            $table->dropForeign(['id_livreur']);
+            
+            // Supprimer l'index
+            $table->dropIndex(['id_livreur']);
+            
+            // Supprimer la colonne
+            $table->dropColumn('id_livreur');
+        });
+    }
+};
+
+    {
+        Schema::table('commandes', function (Blueprint $table) {
+            // Supprimer la contrainte de clé étrangère
+            $table->dropForeign(['id_livreur']);
+            
+            // Supprimer l'index
+            $table->dropIndex(['id_livreur']);
+            
+            // Supprimer la colonne
+            $table->dropColumn('id_livreur');
+        });
+    }
+};
+    {
+        Schema::table('commandes', function (Blueprint $table) {
+            // Supprimer la contrainte de clé étrangère
+            $table->dropForeign(['id_livreur']);
+            
+            // Supprimer l'index
+            $table->dropIndex(['id_livreur']);
+            
+            // Supprimer la colonne
+            $table->dropColumn('id_livreur');
+        });
+    }
+};
+    {
+        Schema::table('commandes', function (Blueprint $table) {
+            // Supprimer la contrainte de clé étrangère
+            $table->dropForeign(['id_livreur']);
+            
+            // Supprimer l'index
+            $table->dropIndex(['id_livreur']);
+            
+            // Supprimer la colonne
+            $table->dropColumn('id_livreur');
+        });
+    }
+};
+
+    {
+        Schema::table('commandes', function (Blueprint $table) {
+            // Supprimer la contrainte de clé étrangère
+            $table->dropForeign(['id_livreur']);
+            
+            // Supprimer l'index
+            $table->dropIndex(['id_livreur']);
+            
+            // Supprimer la colonne
+            $table->dropColumn('id_livreur');
+        });
+    }
+};
+    {
+        Schema::table('commandes', function (Blueprint $table) {
+            // Supprimer la contrainte de clé étrangère
+            $table->dropForeign(['id_livreur']);
+            
+            // Supprimer l'index
+            $table->dropIndex(['id_livreur']);
+            
+            // Supprimer la colonne
+            $table->dropColumn('id_livreur');
+        });
+    }
+};
