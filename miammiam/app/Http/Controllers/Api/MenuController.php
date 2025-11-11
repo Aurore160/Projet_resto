@@ -7,28 +7,48 @@ use App\Models\MenuItem;
 use App\Models\Categorie;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Schema;
 
 class MenuController extends Controller
 {
     // Consulter le menu avec filtres (public - tous les utilisateurs)
     public function index(Request $request)
     {
+        $categorieId = $request->query('categorie');
+        $search = $request->query('search');
+        $disponible = $request->query('disponible', true);
+        
+        // Construire une clé de cache unique en fonction des filtres
+        $cacheKey = 'menu_' . md5(json_encode([
+            'categorie' => $categorieId,
+            'search' => $search,
+            'disponible' => $disponible
+        ]));
+        
         try {
-            $categorieId = $request->query('categorie');
-            $search = $request->query('search');
-            $disponible = $request->query('disponible', true);
-            
-            // Construire une clé de cache unique en fonction des filtres
-            $cacheKey = 'menu_' . md5(json_encode([
-                'categorie' => $categorieId,
-                'search' => $search,
-                'disponible' => $disponible
-            ]));
+            // Vérifier que la table existe
+            if (!Schema::hasTable('menu_item')) {
+                \Log::warning('Table menu_item n\'existe pas');
+                return response()->json([
+                    'success' => true,
+                    'data' => [],
+                    'message' => 'Aucun menu disponible pour le moment',
+                ], 200);
+            }
             
             // Cache pendant 60 minutes
             $menuItems = Cache::remember($cacheKey, 3600, function () use ($categorieId, $search, $disponible) {
-                $query = MenuItem::with('categorie')
-                                 ->where('statut_disponibilite', $disponible);
+                // Vérifier si la table categories existe pour la relation
+                $hasCategories = Schema::hasTable('categories');
+                
+                $query = MenuItem::query();
+                
+                // Ajouter la relation seulement si la table existe
+                if ($hasCategories) {
+                    $query->with('categorie');
+                }
+                
+                $query->where('statut_disponibilite', $disponible);
                 
                 // Filtre par catégorie
                 if ($categorieId) {
@@ -70,6 +90,8 @@ class MenuController extends Controller
             ], 200);
             
         } catch (\Illuminate\Database\QueryException $e) {
+            // Vider le cache en cas d'erreur
+            Cache::forget($cacheKey);
             \Log::error('Erreur de base de données lors de la récupération du menu', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
@@ -80,6 +102,8 @@ class MenuController extends Controller
                 'error' => config('app.debug') ? $e->getMessage() : 'Erreur de base de données',
             ], 503);
         } catch (\Exception $e) {
+            // Vider le cache en cas d'erreur
+            Cache::forget($cacheKey);
             \Log::error('Erreur lors de la récupération du menu', [
                 'error' => $e->getMessage(),
                 'file' => $e->getFile(),
@@ -152,6 +176,16 @@ class MenuController extends Controller
     public function categories()
     {
         try {
+            // Vérifier que la table existe
+            if (!Schema::hasTable('categories')) {
+                \Log::warning('Table categories n\'existe pas');
+                return response()->json([
+                    'success' => true,
+                    'data' => [],
+                    'message' => 'Aucune catégorie disponible pour le moment',
+                ], 200);
+            }
+            
             // Cache des catégories pendant 24 heures (changent rarement)
             $categories = Cache::remember('categories_list', 86400, function () {
                 return Categorie::orderBy('nom')->get();
@@ -163,6 +197,8 @@ class MenuController extends Controller
             ], 200);
             
         } catch (\Illuminate\Database\QueryException $e) {
+            // Vider le cache en cas d'erreur
+            Cache::forget('categories_list');
             \Log::error('Erreur de base de données lors de la récupération des catégories', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
@@ -173,6 +209,8 @@ class MenuController extends Controller
                 'error' => config('app.debug') ? $e->getMessage() : 'Erreur de base de données',
             ], 503);
         } catch (\Exception $e) {
+            // Vider le cache en cas d'erreur
+            Cache::forget('categories_list');
             \Log::error('Erreur lors de la récupération des catégories', [
                 'error' => $e->getMessage(),
                 'file' => $e->getFile(),

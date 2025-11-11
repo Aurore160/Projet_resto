@@ -14,6 +14,8 @@ class CorsMiddleware
     protected $allowedOrigins = [
         'http://localhost:5173',
         'http://127.0.0.1:5173',
+        'http://localhost:5174',
+        'http://127.0.0.1:5174',
         'http://localhost:3000',
         'http://127.0.0.1:3000',
     ];
@@ -21,54 +23,44 @@ class CorsMiddleware
     /**
      * Handle an incoming request.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \Closure  $next
-     * @return mixed
+     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
-    public function handle(Request $request, Closure $next)
+    public function handle(Request $request, Closure $next): Response
     {
-        // Récupérer l'origine de la requête
         $origin = $request->headers->get('Origin');
         
-        // Vérifier si l'origine est autorisée
-        $allowedOrigin = in_array($origin, $this->allowedOrigins) ? $origin : $this->allowedOrigins[0];
-
-        // Gérer les requêtes OPTIONS (preflight) AVANT toute autre logique
+        // Déterminer l'origine autorisée
+        $allowedOrigin = null;
+        if ($origin && in_array($origin, $this->allowedOrigins)) {
+            $allowedOrigin = $origin;
+        }
+        
+        // Gérer les requêtes OPTIONS (preflight)
         if ($request->isMethod('OPTIONS')) {
-            return response('', 200)
-                ->header('Access-Control-Allow-Origin', $allowedOrigin)
-                ->header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH')
-                ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin, X-CSRF-TOKEN')
-                ->header('Access-Control-Allow-Credentials', 'true')
-                ->header('Access-Control-Max-Age', '86400');
+            $response = response('', 200);
+            
+            if ($allowedOrigin) {
+                $response->headers->set('Access-Control-Allow-Origin', $allowedOrigin);
+                $response->headers->set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+                $response->headers->set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin, X-CSRF-TOKEN');
+                $response->headers->set('Access-Control-Allow-Credentials', 'true');
+                $response->headers->set('Access-Control-Max-Age', '86400');
+            }
+            
+            return $response;
         }
-
-        try {
-            $response = $next($request);
-
-            // Ajouter les en-têtes CORS à toutes les réponses
+        
+        // Traiter la requête normale
+        $response = $next($request);
+        
+        // Ajouter les en-têtes CORS à la réponse
+        if ($allowedOrigin) {
             $response->headers->set('Access-Control-Allow-Origin', $allowedOrigin);
             $response->headers->set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
             $response->headers->set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin, X-CSRF-TOKEN');
             $response->headers->set('Access-Control-Allow-Credentials', 'true');
-
-            return $response;
-        } catch (\Exception $e) {
-            // En cas d'erreur, toujours retourner les en-têtes CORS
-            $response = response()->json([
-                'success' => false,
-                'message' => 'Erreur serveur',
-                'error' => config('app.debug') ? $e->getMessage() : 'Une erreur est survenue'
-            ], 500);
-            
-            $response->headers->set('Access-Control-Allow-Origin', $allowedOrigin);
-            $response->headers->set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
-            $response->headers->set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin, X-CSRF-TOKEN');
-            $response->headers->set('Access-Control-Allow-Credentials', 'true');
-            
-            return $response;
         }
+        
+        return $response;
     }
 }
-
-

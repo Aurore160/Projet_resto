@@ -28,7 +28,7 @@ use Illuminate\Database\QueryException;
 
 class AdminController extends Controller
 {
-    // Liste tous les utilisateurs (admin uniquement)
+    // Liste tous les utilisateurs 
     public function listUsers()
     {
         try {
@@ -127,14 +127,12 @@ class AdminController extends Controller
         }
     }
 
-    // Récupère un utilisateur par ID (admin uniquement)
+    // Récupère un utilisateur par ID 
     public function getUser($id)
     {
         try {
             $user = Utilisateur::findOrFail($id);
             
-            // Construire manuellement le tableau pour éviter les problèmes avec toArray()
-            // Récupérer la photo directement depuis l'attribut brut pour éviter l'accesseur
             $photoValue = $user->getAttributes()['photo'] ?? $user->getOriginal('photo') ?? null;
             
             $userArray = [
@@ -175,7 +173,7 @@ class AdminController extends Controller
                     $userArray['statut_employe'] = null;
                 }
             } catch (\Exception $e) {
-                // Si la table employe n'existe pas, ajouter des valeurs null
+                
                 $userArray['matricule'] = null;
                 $userArray['role_specifique'] = null;
                 $userArray['date_embauche'] = null;
@@ -210,7 +208,7 @@ class AdminController extends Controller
         }
     }
 
-    // Crée un nouvel utilisateur (admin uniquement)
+    // Crée un nouvel utilisateur 
     public function createUser(CreateUserRequest $request)
     {
         try {
@@ -1226,8 +1224,7 @@ class AdminController extends Controller
                     'utilisateur.nom',
                     'utilisateur.prenom',
                     'utilisateur.email',
-                    'utilisateur.telephone',
-                    'utilisateur.photo'
+                    'utilisateur.telephone'
                 );
 
             if ($status) {
@@ -1244,40 +1241,12 @@ class AdminController extends Controller
 
             $commandes = $query->get();
 
-            // Récupérer les articles avec les détails des plats pour chaque commande
+            // Compter le nombre d'articles pour chaque commande
             $commandesAvecArticles = [];
             foreach ($commandes as $commande) {
-                // Récupérer les articles de la commande avec les détails des plats
-                $articles = DB::table('commande_articles')
-                    ->join('menu_item', 'commande_articles.id_menuitem', '=', 'menu_item.id_menuitem')
-                    ->where('commande_articles.id_commande', $commande->id_commande)
-                    ->select(
-                        'commande_articles.id_commande_article',
-                        'commande_articles.id_menuitem',
-                        'commande_articles.quantite',
-                        'commande_articles.prix_unitaire',
-                        'menu_item.nom as plat_nom',
-                        'menu_item.description as plat_description',
-                        'menu_item.photo_url as plat_photo'
-                    )
-                    ->get();
-                
-                $nbArticles = $articles->sum('quantite');
-                
-                // Formater les articles
-                $articlesFormates = $articles->map(function ($article) {
-                    return [
-                        'id_commande_article' => (int) $article->id_commande_article,
-                        'id_menuitem' => (int) $article->id_menuitem,
-                        'quantite' => (int) $article->quantite,
-                        'prix_unitaire' => (float) $article->prix_unitaire,
-                        'plat' => [
-                            'nom' => $article->plat_nom,
-                            'description' => $article->plat_description,
-                            'photo_url' => $article->plat_photo,
-                        ],
-                    ];
-                })->toArray();
+                $nbArticles = DB::table('commande_articles')
+                    ->where('id_commande', $commande->id_commande)
+                    ->sum('quantite');
                 
                 $commandeArray = [
                     'id_commande' => (int) $commande->id_commande,
@@ -1292,14 +1261,12 @@ class AdminController extends Controller
                     'date_modification' => $commande->date_modification ? (string) $commande->date_modification : null,
                     'adresse_livraison' => $commande->adresse_livraison ? (string) $commande->adresse_livraison : null,
                     'nb_articles' => (int) $nbArticles,
-                    'articles' => $articlesFormates,
                     'utilisateur' => [
                         'id_utilisateur' => (int) $commande->id_utilisateur,
                         'nom' => $commande->nom,
                         'prenom' => $commande->prenom,
                         'email' => $commande->email,
                         'telephone' => $commande->telephone,
-                        'photo' => $commande->photo ?? null,
                     ],
                 ];
                 
@@ -2017,24 +1984,19 @@ class AdminController extends Controller
                 $topPlatsQuery->select(
                         'profits_par_plat.id_menuitem',
                         'profits_par_plat.nom',
-                        DB::raw('COUNT(DISTINCT commandes.id_commande) as commandes'),
-                        DB::raw('COALESCE(SUM(commande_articles.sous_total), 0) as revenue')
+                        DB::raw('COUNT(DISTINCT commandes.id_commande) as commandes')
                     )
                     ->groupBy('profits_par_plat.id_menuitem', 'profits_par_plat.nom')
                     ->orderBy('commandes', 'desc')
                     ->limit(10);
-            } else {
-                // Si pas de filtre, inclure le revenu depuis profits_par_plat
-                $topPlatsQuery->addSelect(DB::raw('COALESCE(profits_par_plat.revenu_total, 0) as revenue'));
             }
             
             $topPlats = $topPlatsQuery->get()
                 ->map(function ($item) {
                     return [
-                        'id' => $item->id_menuitem ?? null,
+                        'id' => $item->id_menuitem,
                         'nom' => $item->nom,
                         'commandes' => (int) ($item->commandes ?? 0),
-                        'revenue' => (float) ($item->revenue ?? 0)
                     ];
                 });
 
@@ -2503,7 +2465,7 @@ class AdminController extends Controller
                 ];
             }
             
-            // 8. Top plats (par nombre de commandes et revenu)
+            // 8. Top plats (par nombre de commandes)
             $topPlats = [];
             if (Schema::hasTable('menu_item')) {
                 $topPlats = DB::table('commande_articles')
@@ -2512,11 +2474,7 @@ class AdminController extends Controller
                     ->where('commandes.statut', '!=', 'panier')
                     ->where('commandes.statut', '!=', 'annulee')
                     ->whereBetween('commandes.date_commande', [$moisActuel->copy()->subMonth()->format('Y-m-d H:i:s'), $moisActuelFin->format('Y-m-d H:i:s')])
-                    ->select(
-                        'menu_item.nom',
-                        DB::raw('COUNT(DISTINCT commandes.id_commande) as commandes'),
-                        DB::raw('COALESCE(SUM(commande_articles.sous_total), 0) as revenue')
-                    )
+                    ->select('menu_item.nom', DB::raw('COUNT(DISTINCT commandes.id_commande) as commandes'))
                     ->groupBy('menu_item.nom')
                     ->orderBy('commandes', 'desc')
                     ->limit(4)
@@ -2524,8 +2482,7 @@ class AdminController extends Controller
                     ->map(function ($item) {
                         return [
                             'nom' => $item->nom,
-                            'commandes' => (int) $item->commandes,
-                            'revenue' => (float) ($item->revenue ?? 0)
+                            'commandes' => (int) $item->commandes
                         ];
                     })
                     ->toArray();
@@ -2576,59 +2533,6 @@ class AdminController extends Controller
                 $pointsAttention = array_merge($pointsAttention, array_slice($suggestions, 0, 3 - count($pointsAttention)));
             }
             
-            // 10. Statistiques de parrainage
-            $parrainageStats = [
-                'total_parrainages' => 0,
-                'total_points_parrainage' => 0,
-                'parrainages_avec_commande' => 0
-            ];
-            if (Schema::hasTable('parrainages')) {
-                $parrainages = DB::table('parrainages')
-                    ->whereBetween('date_parrainage', [$moisActuel->format('Y-m-d H:i:s'), $moisActuelFin->format('Y-m-d H:i:s')])
-                    ->get();
-                
-                $parrainageStats['total_parrainages'] = $parrainages->count();
-                $parrainageStats['total_points_parrainage'] = $parrainages->sum(function ($p) {
-                    return ($p->points_inscription ?? 0) + ($p->points_premiere_commande ?? 0);
-                });
-                $parrainageStats['parrainages_avec_commande'] = $parrainages->where('premiere_commande_faite', true)->count();
-            }
-            
-            // 11. Statistiques de points de fidélité
-            $loyaltyStats = [
-                'total_points_distribues' => 0,
-                'total_points_utilises' => 0,
-                'utilisateurs_avec_points' => 0,
-                'points_en_circulation' => 0
-            ];
-            if (Schema::hasTable('utilisateur')) {
-                // Points en circulation (somme des points_balance de tous les utilisateurs)
-                $loyaltyStats['points_en_circulation'] = (int) DB::table('utilisateur')
-                    ->sum('points_balance');
-                
-                // Utilisateurs ayant des points
-                $loyaltyStats['utilisateurs_avec_points'] = (int) DB::table('utilisateur')
-                    ->where('points_balance', '>', 0)
-                    ->count();
-                
-                // Pour les points distribués et utilisés, on peut utiliser l'historique des transactions
-                // Si une table historique_points existe, sinon on peut estimer
-                if (Schema::hasTable('historique_points')) {
-                    $loyaltyStats['total_points_distribues'] = (int) DB::table('historique_points')
-                        ->where('type', 'credit')
-                        ->whereBetween('date_transaction', [$moisActuel->format('Y-m-d H:i:s'), $moisActuelFin->format('Y-m-d H:i:s')])
-                        ->sum('points');
-                    
-                    $loyaltyStats['total_points_utilises'] = (int) DB::table('historique_points')
-                        ->where('type', 'debit')
-                        ->whereBetween('date_transaction', [$moisActuel->format('Y-m-d H:i:s'), $moisActuelFin->format('Y-m-d H:i:s')])
-                        ->sum('points');
-                } else {
-                    // Estimation basée sur les parrainages et les commandes
-                    $loyaltyStats['total_points_distribues'] = $parrainageStats['total_points_parrainage'];
-                }
-            }
-            
             return response()->json([
                 'success' => true,
                 'data' => [
@@ -2666,9 +2570,7 @@ class AdminController extends Controller
                     'evolutionCA' => $evolutionCA,
                     'commandesParSemaine' => $commandesParSemaine,
                     'topPlats' => $topPlats,
-                    'pointsAttention' => $pointsAttention,
-                    'parrainageStats' => $parrainageStats,
-                    'loyaltyStats' => $loyaltyStats
+                    'pointsAttention' => $pointsAttention
                 ]
             ], 200);
             
